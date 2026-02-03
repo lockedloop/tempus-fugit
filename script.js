@@ -4,15 +4,14 @@
     // ==================== Storage Module ====================
     const Storage = {
         KEY_CONTAINERS: 'speedrun_containers',
-        KEY_WIDGETS: 'speedrun_widgets', // Legacy key for migration
-        KEY_TIMERS: 'speedrun_timers', // Legacy key for migration
         KEY_SETTINGS: 'speedrun_settings',
         // Legacy keys for migration
         LEGACY_KEYS: {
             target: 'speedrun_target_date',
             start: 'speedrun_start_date',
             title: 'speedrun_title',
-            description: 'speedrun_description'
+            description: 'speedrun_description',
+            timers: 'speedrun_timers'
         },
 
         generateId() {
@@ -47,7 +46,8 @@
         },
 
         getFromLocalStorage() {
-            const stored = localStorage.getItem(this.KEY_CONTAINERS);
+            // First try the new key
+            let stored = localStorage.getItem(this.KEY_CONTAINERS);
             if (stored) {
                 try {
                     const containers = JSON.parse(stored);
@@ -58,7 +58,42 @@
                     console.warn('Failed to parse stored containers:', e);
                 }
             }
+
+            // Try legacy timers key and migrate
+            stored = localStorage.getItem(this.LEGACY_KEYS.timers);
+            if (stored) {
+                try {
+                    const timers = JSON.parse(stored);
+                    if (Array.isArray(timers)) {
+                        const containers = this.migrateTimersToContainers(timers);
+                        // Save migrated data
+                        this.set(containers);
+                        // Remove old key
+                        localStorage.removeItem(this.LEGACY_KEYS.timers);
+                        return { containers };
+                    }
+                } catch (e) {
+                    console.warn('Failed to parse legacy timers:', e);
+                }
+            }
+
             return { containers: [] };
+        },
+
+        migrateTimersToContainers(timers) {
+            return timers.map(timer => ({
+                id: timer.id.replace('timer_', 'container_'),
+                type: 'countdown',
+                title: timer.title || '',
+                description: timer.description || '',
+                height: timer.height || 2,
+                column: timer.column !== undefined ? timer.column : 0,
+                createdAt: timer.createdAt || Date.now(),
+                data: {
+                    startDate: timer.startDate,
+                    targetDate: timer.targetDate
+                }
+            }));
         },
 
         async set(containers) {
@@ -81,27 +116,18 @@
             }
         },
 
-        async addContainer(data) {
+        async addContainer(containerData) {
             const { containers } = await this.get();
             const newContainer = {
                 id: this.generateId(),
-                type: data.type || 'countdown',
-                title: data.title || '',
-                description: data.description || '',
-                height: data.height || 2,
-                createdAt: Date.now()
+                type: containerData.type || 'countdown',
+                title: containerData.title || '',
+                description: containerData.description || '',
+                height: containerData.height || 2,
+                column: containerData.column !== undefined ? containerData.column : 0,
+                createdAt: Date.now(),
+                data: containerData.data || {}
             };
-
-            // Add type-specific fields
-            if (newContainer.type === 'countdown') {
-                newContainer.startDate = data.startDate;
-                newContainer.targetDate = data.targetDate;
-            } else if (newContainer.type === 'image') {
-                newContainer.imageUrl = data.imageUrl || '';
-            } else if (newContainer.type === 'text') {
-                newContainer.text = data.text || '';
-            }
-
             containers.push(newContainer);
             await this.set(containers);
             return newContainer;
@@ -123,13 +149,6 @@
             const filtered = containers.filter(c => c.id !== id);
             await this.set(filtered);
             return filtered;
-        },
-
-        async reorderContainers(orderedIds) {
-            const { containers } = await this.get();
-            const reordered = orderedIds.map(id => containers.find(c => c.id === id)).filter(Boolean);
-            await this.set(reordered);
-            return reordered;
         },
 
         async getSettings() {
@@ -186,100 +205,8 @@
             }
         },
 
-        async migrateTimersToContainers() {
-            // First check if we already have containers
-            const { containers } = await this.get();
-            if (containers.length > 0) {
-                return null; // Already have containers, no migration needed
-            }
-
-            // Check for old widgets data (speedrun_widgets key)
-            let oldData = null;
-            const storedWidgets = localStorage.getItem(this.KEY_WIDGETS);
-            if (storedWidgets) {
-                try {
-                    oldData = JSON.parse(storedWidgets);
-                } catch (e) {
-                    console.warn('Failed to parse stored widgets for migration:', e);
-                }
-            }
-
-            // Also check chrome.storage for old widgets
-            if (!oldData && typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-                try {
-                    oldData = await new Promise((resolve) => {
-                        chrome.storage.sync.get([this.KEY_WIDGETS], (result) => {
-                            if (chrome.runtime.lastError) {
-                                resolve(null);
-                            } else {
-                                resolve(result[this.KEY_WIDGETS] || null);
-                            }
-                        });
-                    });
-                } catch (e) {
-                    console.warn('Chrome storage widget migration failed:', e);
-                }
-            }
-
-            // If no widgets found, try migrating from old timers
-            if (!oldData) {
-                const storedTimers = localStorage.getItem(this.KEY_TIMERS);
-                if (storedTimers) {
-                    try {
-                        oldData = JSON.parse(storedTimers);
-                    } catch (e) {
-                        console.warn('Failed to parse stored timers for migration:', e);
-                    }
-                }
-
-                // Also check chrome.storage for old timers
-                if (!oldData && typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-                    try {
-                        oldData = await new Promise((resolve) => {
-                            chrome.storage.sync.get([this.KEY_TIMERS], (result) => {
-                                if (chrome.runtime.lastError) {
-                                    resolve(null);
-                                } else {
-                                    resolve(result[this.KEY_TIMERS] || null);
-                                }
-                            });
-                        });
-                    } catch (e) {
-                        console.warn('Chrome storage timer migration failed:', e);
-                    }
-                }
-            }
-
-            if (oldData && Array.isArray(oldData) && oldData.length > 0) {
-                console.log('Migrating data to containers:', oldData);
-                // Convert to containers by updating ID prefix and ensuring type
-                const migratedContainers = oldData.map(item => ({
-                    ...item,
-                    id: item.id.replace(/^(timer_|widget_)/, 'container_'), // Update ID prefix
-                    type: item.type || 'countdown'
-                }));
-
-                await this.set(migratedContainers);
-
-                // Clean up old data
-                localStorage.removeItem(this.KEY_WIDGETS);
-                localStorage.removeItem(this.KEY_TIMERS);
-                if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-                    try {
-                        chrome.storage.sync.remove([this.KEY_WIDGETS, this.KEY_TIMERS]);
-                    } catch (e) {
-                        console.warn('Failed to remove legacy keys:', e);
-                    }
-                }
-
-                return migratedContainers;
-            }
-
-            return null;
-        },
-
         async migrateFromLegacy() {
-            // Check if legacy data exists (single timer keys)
+            // Check if legacy data exists
             const hasLegacy = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync;
 
             let legacyData = null;
@@ -329,8 +256,13 @@
             if (legacyData) {
                 console.log('Migrating legacy timer data:', legacyData);
                 const newContainer = await this.addContainer({
-                    ...legacyData,
-                    type: 'countdown'
+                    type: 'countdown',
+                    title: legacyData.title,
+                    description: legacyData.description,
+                    data: {
+                        startDate: legacyData.startDate,
+                        targetDate: legacyData.targetDate
+                    }
                 });
 
                 // Clean up legacy data
@@ -507,8 +439,10 @@
         }
     };
 
-    // ==================== Container Base Class ====================
+    // ==================== Base Container Class ====================
     class Container {
+        static get type() { return 'base'; }
+
         constructor(id, data, containerElement) {
             this.id = id;
             this.data = data;
@@ -519,45 +453,58 @@
         init() {
             this.render();
             this.cacheElements();
-            this.initHeight();
-            this.update(new Date());
-        }
-
-        initHeight() {
-            const height = this.data.height || 2;
-            this.container.setAttribute('data-height', height);
-            this.container.setAttribute('data-type', this.data.type || 'countdown');
+            this.applyHeight();
+            this.updateHeader();
         }
 
         render() {
-            this.container.innerHTML = this.renderChrome() + this.renderContent();
-        }
-
-        renderChrome() {
-            return `
-                <button class="expand-btn" title="Expand">&#x26F6;</button>
-                <button class="edit-btn" title="Edit Widget">&#128295;</button>
-                <button class="close-btn" title="Close">&#x2715;</button>
+            this.container.innerHTML = `
                 <div class="height-controls">
-                    <button class="height-btn height-btn-expand" title="Expand height">&#x25BC;</button>
-                    <button class="height-btn height-btn-collapse" title="Collapse height">&#x25B2;</button>
+                    <button class="height-btn height-down" title="Decrease height">&#x25B2;</button>
+                    <button class="height-btn height-up" title="Increase height">&#x25BC;</button>
+                </div>
+                <button class="info-btn" title="Info">&#x2139;</button>
+                <button class="expand-btn" title="Expand">&#x26F6;</button>
+                <button class="edit-btn" title="Edit">&#128295;</button>
+                <button class="close-btn" title="Close">&#x2715;</button>
+                <div class="info-popup">
+                    <div class="info-title"></div>
+                    <div class="info-description"></div>
+                </div>
+                <header>
+                    <h2 class="container-title-display">${this.getDefaultTitle()}</h2>
+                    <div class="container-description-display subtitle"></div>
+                </header>
+                <div class="container-body">
+                    ${this.renderBody()}
                 </div>
             `;
         }
 
-        renderContent() {
-            // Override in subclasses
+        renderBody() {
+            // Subclasses override this
             return '';
         }
 
         cacheElements() {
             this.elements = {
+                heightUpBtn: this.container.querySelector('.height-up'),
+                heightDownBtn: this.container.querySelector('.height-down'),
                 editBtn: this.container.querySelector('.edit-btn'),
                 expandBtn: this.container.querySelector('.expand-btn'),
                 closeBtn: this.container.querySelector('.close-btn'),
-                heightCollapseBtn: this.container.querySelector('.height-btn-collapse'),
-                heightExpandBtn: this.container.querySelector('.height-btn-expand')
+                infoBtn: this.container.querySelector('.info-btn'),
+                infoPopup: this.container.querySelector('.info-popup'),
+                infoTitle: this.container.querySelector('.info-title'),
+                infoDescription: this.container.querySelector('.info-description'),
+                titleDisplay: this.container.querySelector('.container-title-display'),
+                descriptionDisplay: this.container.querySelector('.container-description-display'),
+                body: this.container.querySelector('.container-body')
             };
+
+            // Bind height control buttons
+            this.elements.heightUpBtn.addEventListener('click', () => this.adjustHeight(1));
+            this.elements.heightDownBtn.addEventListener('click', () => this.adjustHeight(-1));
 
             // Bind edit button
             this.elements.editBtn.addEventListener('click', () => {
@@ -568,20 +515,57 @@
             this.elements.expandBtn.addEventListener('click', () => this.enterFullscreen());
             this.elements.closeBtn.addEventListener('click', () => this.exitFullscreen());
 
-            // Bind height control buttons
-            this.elements.heightCollapseBtn.addEventListener('click', () => this.adjustHeight(-1));
-            this.elements.heightExpandBtn.addEventListener('click', () => this.adjustHeight(1));
+            // Bind info button toggle
+            this.elements.infoBtn.addEventListener('click', () => {
+                this.elements.infoPopup.classList.toggle('visible');
+            });
 
             // Cache type-specific elements
-            this.cacheContentElements();
+            this.cacheTypeElements();
         }
 
-        cacheContentElements() {
-            // Override in subclasses
+        cacheTypeElements() {
+            // Subclasses override this
+        }
+
+        getDefaultTitle() {
+            return 'Container';
+        }
+
+        updateHeader() {
+            const { title, description } = this.data;
+
+            this.elements.titleDisplay.textContent = title || this.getDefaultTitle();
+            this.elements.descriptionDisplay.textContent = description || '';
+
+            // Populate info popup
+            this.elements.infoTitle.textContent = title || this.getDefaultTitle();
+            this.elements.infoDescription.textContent = description || '';
+        }
+
+        applyHeight() {
+            // Remove existing height classes
+            for (let i = 1; i <= 5; i++) {
+                this.container.classList.remove(`height-${i}`);
+            }
+            // Apply current height class (default to 2 if not set)
+            const height = this.data.height || 2;
+            this.container.classList.add(`height-${height}`);
+        }
+
+        async adjustHeight(delta) {
+            const currentHeight = this.data.height || 2;
+            const newHeight = Math.max(1, Math.min(5, currentHeight + delta));
+
+            if (newHeight !== currentHeight) {
+                this.data.height = newHeight;
+                this.applyHeight();
+                await Storage.updateContainer(this.id, { height: newHeight });
+            }
         }
 
         update(now) {
-            // Override in subclasses if needed
+            // Subclasses override this if they need time updates
         }
 
         destroy() {
@@ -608,61 +592,47 @@
 
         updateData(newData) {
             this.data = { ...this.data, ...newData };
-            this.onDataUpdate();
+            this.updateHeader();
+            this.onDataUpdated();
         }
 
-        onDataUpdate() {
-            // Override in subclasses
-        }
-
-        adjustHeight(delta) {
-            const currentHeight = parseInt(this.container.getAttribute('data-height') || '2', 10);
-            const newHeight = Math.min(5, Math.max(1, currentHeight + delta));
-
-            if (newHeight !== currentHeight) {
-                this.container.setAttribute('data-height', newHeight);
-                this.data.height = newHeight;
-                Storage.updateContainer(this.id, { height: newHeight });
-            }
+        onDataUpdated() {
+            // Subclasses override this
         }
     }
 
     // ==================== CountdownContainer Class ====================
     class CountdownContainer extends Container {
+        static get type() { return 'countdown'; }
+
         constructor(id, data, containerElement) {
             super(id, data, containerElement);
-            this.startDate = TimeCalc.parseDate(data.startDate);
-            this.targetDate = TimeCalc.parseDate(data.targetDate);
+            this.initCountdownData();
+        }
+
+        initCountdownData() {
+            const typeData = this.data.data || {};
+            this.startDate = TimeCalc.parseDate(typeData.startDate);
+            this.targetDate = TimeCalc.parseDate(typeData.targetDate);
             this.totalWeeks = TimeCalc.getWeeksBetween(this.startDate, this.targetDate);
             this.yearRanges = TimeCalc.getYearRanges(this.startDate, this.targetDate);
         }
 
-        renderChrome() {
-            return `
-                <button class="info-btn" title="Info">&#x2139;</button>
-                <button class="expand-btn" title="Expand">&#x26F6;</button>
-                <button class="edit-btn" title="Edit Widget">&#128295;</button>
-                <button class="close-btn" title="Close">&#x2715;</button>
-                <div class="height-controls">
-                    <button class="height-btn height-btn-expand" title="Expand height">&#x25BC;</button>
-                    <button class="height-btn height-btn-collapse" title="Collapse height">&#x25B2;</button>
-                </div>
-                <div class="info-popup">
-                    <div class="info-weeks"></div>
-                    <div class="info-dates"></div>
-                    <div class="info-description"></div>
-                </div>
-            `;
+        init() {
+            super.init();
+            this.update(new Date());
         }
 
-        renderContent() {
+        getDefaultTitle() {
+            return `${this.totalWeeks.toLocaleString()} Weeks`;
+        }
+
+        renderBody() {
             return `
-                <header>
-                    <h2 class="widget-title-display">-- Weeks</h2>
-                    <div class="widget-description-display subtitle"></div>
+                <div class="countdown-header-info">
                     <div class="weeks-count"></div>
                     <div class="target-subtitle subtitle">Configure your target date</div>
-                </header>
+                </div>
                 <section class="weeks-section"></section>
                 <div class="led-countdown">
                     <div class="led-time">
@@ -670,18 +640,11 @@
                     </div>
                     <div class="progress-bar"><div class="progress-fill"></div></div>
                 </div>
-                <footer class="widget-footer"><span class="stats"></span></footer>
+                <footer class="container-footer"><span class="stats"></span></footer>
             `;
         }
 
-        cacheContentElements() {
-            this.elements.infoBtn = this.container.querySelector('.info-btn');
-            this.elements.infoPopup = this.container.querySelector('.info-popup');
-            this.elements.infoWeeks = this.container.querySelector('.info-weeks');
-            this.elements.infoDates = this.container.querySelector('.info-dates');
-            this.elements.infoDescription = this.container.querySelector('.info-description');
-            this.elements.titleDisplay = this.container.querySelector('.widget-title-display');
-            this.elements.descriptionDisplay = this.container.querySelector('.widget-description-display');
+        cacheTypeElements() {
             this.elements.weeksCount = this.container.querySelector('.weeks-count');
             this.elements.targetSubtitle = this.container.querySelector('.target-subtitle');
             this.elements.weeksSection = this.container.querySelector('.weeks-section');
@@ -691,35 +654,27 @@
             this.elements.ledSeconds = this.container.querySelector('.led-seconds');
             this.elements.progressFill = this.container.querySelector('.progress-fill');
             this.elements.stats = this.container.querySelector('.stats');
-
-            // Bind info button toggle
-            this.elements.infoBtn.addEventListener('click', () => {
-                this.elements.infoPopup.classList.toggle('visible');
-            });
-
-            this.updateHeader();
         }
 
         updateHeader() {
-            const { title, description } = this.data;
+            super.updateHeader();
+
+            const { title } = this.data;
 
             if (title) {
-                this.elements.titleDisplay.textContent = title;
                 this.elements.weeksCount.textContent = `${this.totalWeeks.toLocaleString()} Weeks`;
             } else {
-                this.elements.titleDisplay.textContent = `${this.totalWeeks.toLocaleString()} Weeks`;
                 this.elements.weeksCount.textContent = '';
             }
 
-            this.elements.descriptionDisplay.textContent = description || '';
             this.elements.targetSubtitle.textContent =
                 `${TimeCalc.formatDate(this.startDate)} → ${TimeCalc.formatDate(this.targetDate)}`;
 
-            // Populate info popup
-            this.elements.infoWeeks.textContent = `${this.totalWeeks.toLocaleString()} Weeks`;
-            this.elements.infoDates.textContent =
-                `${TimeCalc.formatDate(this.startDate)} → ${TimeCalc.formatDate(this.targetDate)}`;
-            this.elements.infoDescription.textContent = description || '';
+            // Update info popup with countdown-specific info
+            this.elements.infoTitle.textContent = `${this.totalWeeks.toLocaleString()} Weeks`;
+            this.elements.infoDescription.innerHTML =
+                `${TimeCalc.formatDate(this.startDate)} → ${TimeCalc.formatDate(this.targetDate)}` +
+                (this.data.description ? `<br><br>${this.data.description}` : '');
         }
 
         update(now) {
@@ -730,6 +685,7 @@
             this.updateLedCountdown(remaining);
             this.updateStats(elapsedWeeks);
 
+            // Update progress bar once per minute (when seconds = 0) or on first call
             const currentSecond = now.getSeconds();
             if (currentSecond === 0 || this.lastProgressUpdate === undefined) {
                 this.updateProgress();
@@ -771,6 +727,7 @@
                 this.elements.weeksSection.appendChild(row);
             }
 
+            // Scroll current week into view
             const currentCell = this.elements.weeksSection.querySelector('.week-cell.current');
             if (currentCell) {
                 currentCell.scrollIntoView({ block: 'center', behavior: 'instant' });
@@ -803,94 +760,100 @@
             this.elements.progressFill.style.width = `${percent}%`;
         }
 
-        onDataUpdate() {
-            this.startDate = TimeCalc.parseDate(this.data.startDate);
-            this.targetDate = TimeCalc.parseDate(this.data.targetDate);
-            this.totalWeeks = TimeCalc.getWeeksBetween(this.startDate, this.targetDate);
-            this.yearRanges = TimeCalc.getYearRanges(this.startDate, this.targetDate);
-            this.updateHeader();
+        onDataUpdated() {
+            this.initCountdownData();
             this.update(new Date());
         }
     }
 
     // ==================== ImageContainer Class ====================
     class ImageContainer extends Container {
-        renderContent() {
-            const { title, description, imageUrl } = this.data;
+        static get type() { return 'image'; }
+
+        getDefaultTitle() {
+            return 'Image';
+        }
+
+        renderBody() {
+            const typeData = this.data.data || {};
+            const imageUrl = typeData.imageUrl || '';
+            const fit = typeData.fit || 'cover';
+
             return `
-                <header>
-                    <h2 class="widget-title-display">${title || 'Image'}</h2>
-                    <div class="widget-description-display subtitle">${description || ''}</div>
-                </header>
-                <div class="image-container">
-                    <img class="widget-image" src="${imageUrl || ''}" alt="${title || 'Image'}" />
+                <div class="image-body" data-fit="${fit}">
+                    ${imageUrl ? `<img src="${imageUrl}" alt="${this.data.title || 'Image'}" style="object-fit: ${fit};">` : '<div class="image-placeholder">No image set</div>'}
                 </div>
             `;
         }
 
-        cacheContentElements() {
-            this.elements.titleDisplay = this.container.querySelector('.widget-title-display');
-            this.elements.descriptionDisplay = this.container.querySelector('.widget-description-display');
-            this.elements.imageContainer = this.container.querySelector('.image-container');
-            this.elements.image = this.container.querySelector('.widget-image');
+        cacheTypeElements() {
+            this.elements.imageBody = this.container.querySelector('.image-body');
+            this.elements.image = this.container.querySelector('.image-body img');
         }
 
-        onDataUpdate() {
-            const { title, description, imageUrl } = this.data;
-            this.elements.titleDisplay.textContent = title || 'Image';
-            this.elements.descriptionDisplay.textContent = description || '';
-            this.elements.image.src = imageUrl || '';
-            this.elements.image.alt = title || 'Image';
+        onDataUpdated() {
+            const typeData = this.data.data || {};
+            const imageUrl = typeData.imageUrl || '';
+            const fit = typeData.fit || 'cover';
+
+            this.elements.imageBody.dataset.fit = fit;
+
+            if (imageUrl) {
+                if (this.elements.image) {
+                    this.elements.image.src = imageUrl;
+                    this.elements.image.style.objectFit = fit;
+                } else {
+                    this.elements.imageBody.innerHTML = `<img src="${imageUrl}" alt="${this.data.title || 'Image'}" style="object-fit: ${fit};">`;
+                    this.elements.image = this.elements.imageBody.querySelector('img');
+                }
+            } else {
+                this.elements.imageBody.innerHTML = '<div class="image-placeholder">No image set</div>';
+                this.elements.image = null;
+            }
         }
     }
 
     // ==================== TextContainer Class ====================
     class TextContainer extends Container {
-        renderContent() {
-            const { title, description, text } = this.data;
+        static get type() { return 'text'; }
+
+        getDefaultTitle() {
+            return 'Text';
+        }
+
+        renderBody() {
+            const typeData = this.data.data || {};
+            const content = typeData.content || '';
+            const fontSize = typeData.fontSize || 'medium';
+            const alignment = typeData.alignment || 'center';
+
             return `
-                <header>
-                    <h2 class="widget-title-display">${title || 'Text'}</h2>
-                    <div class="widget-description-display subtitle">${description || ''}</div>
-                </header>
-                <div class="text-content">${this.parseMarkdown(text || '')}</div>
+                <div class="text-body" data-font-size="${fontSize}" data-alignment="${alignment}">
+                    <div class="text-content">${this.escapeHtml(content) || '<span class="text-placeholder">No content</span>'}</div>
+                </div>
             `;
         }
 
-        cacheContentElements() {
-            this.elements.titleDisplay = this.container.querySelector('.widget-title-display');
-            this.elements.descriptionDisplay = this.container.querySelector('.widget-description-display');
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML.replace(/\n/g, '<br>');
+        }
+
+        cacheTypeElements() {
+            this.elements.textBody = this.container.querySelector('.text-body');
             this.elements.textContent = this.container.querySelector('.text-content');
         }
 
-        parseMarkdown(text) {
-            if (!text) return '';
+        onDataUpdated() {
+            const typeData = this.data.data || {};
+            const content = typeData.content || '';
+            const fontSize = typeData.fontSize || 'medium';
+            const alignment = typeData.alignment || 'center';
 
-            let html = text
-                // Escape HTML first
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                // Headers
-                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-                // Bold
-                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                // Italic
-                .replace(/\*(.+?)\*/g, '<em>$1</em>')
-                // Links
-                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
-                // Line breaks
-                .replace(/\n/g, '<br>');
-
-            return html;
-        }
-
-        onDataUpdate() {
-            const { title, description, text } = this.data;
-            this.elements.titleDisplay.textContent = title || 'Text';
-            this.elements.descriptionDisplay.textContent = description || '';
-            this.elements.textContent.innerHTML = this.parseMarkdown(text || '');
+            this.elements.textBody.dataset.fontSize = fontSize;
+            this.elements.textBody.dataset.alignment = alignment;
+            this.elements.textContent.innerHTML = this.escapeHtml(content) || '<span class="text-placeholder">No content</span>';
         }
     }
 
@@ -903,8 +866,7 @@
         },
 
         create(id, data, containerElement) {
-            const type = data.type || 'countdown';
-            const ContainerClass = this.types[type] || CountdownContainer;
+            const ContainerClass = this.types[data.type] || CountdownContainer;
             return new ContainerClass(id, data, containerElement);
         },
 
@@ -916,32 +878,74 @@
     // ==================== ContainerManager Module ====================
     const ContainerManager = {
         containers: new Map(),
-        containerEl: null,
+        gridEl: null,
+        columnEls: [],
+        columnCount: 2,
         running: false,
         lastSecond: -1,
 
         init(gridElement) {
-            this.containerEl = gridElement;
-            DragDrop.init(gridElement);
+            this.gridEl = gridElement;
+            this.createColumns();
+            DragDrop.init(this);
+        },
+
+        createColumns() {
+            this.gridEl.innerHTML = '';
+            this.columnEls = [];
+
+            for (let i = 0; i < this.columnCount; i++) {
+                const columnEl = document.createElement('div');
+                columnEl.className = 'container-column';
+                columnEl.dataset.columnIndex = i;
+                this.gridEl.appendChild(columnEl);
+                this.columnEls.push(columnEl);
+            }
+        },
+
+        setColumnCount(count) {
+            if (count === this.columnCount) return;
+
+            this.columnCount = count;
+
+            // Redistribute containers to fit new column count
+            const allContainers = Array.from(this.containers.values());
+            for (const container of allContainers) {
+                if ((container.data.column || 0) >= count) {
+                    container.data.column = count - 1;
+                    Storage.updateContainer(container.id, { column: container.data.column });
+                }
+            }
+
+            // Recreate columns
+            this.createColumns();
+
+            // Re-setup DragDrop for new columns
+            DragDrop.init(this);
+
+            // Re-add containers to their columns
+            for (const container of allContainers) {
+                const columnIndex = container.data.column || 0;
+                const columnEl = this.columnEls[columnIndex];
+                if (columnEl) {
+                    columnEl.appendChild(container.container);
+                    DragDrop.setupContainer(container.container);
+                }
+            }
+        },
+
+        getColumnElement(index) {
+            return this.columnEls[index] || this.columnEls[0];
         },
 
         async loadContainers() {
-            // First try to migrate from old timers format
-            const migrated = await Storage.migrateTimersToContainers();
-            if (migrated) {
-                for (const containerData of migrated) {
-                    this.createContainer(containerData, false);
-                }
-                return;
-            }
-
             const { containers } = await Storage.get();
 
             // Check for legacy migration if no containers exist
             if (containers.length === 0) {
-                const legacyMigrated = await Storage.migrateFromLegacy();
-                if (legacyMigrated) {
-                    this.createContainer(legacyMigrated, false);
+                const migrated = await Storage.migrateFromLegacy();
+                if (migrated) {
+                    this.createContainer(migrated, false);
                     return;
                 }
             }
@@ -953,20 +957,30 @@
         },
 
         createContainer(data, isNew = true) {
-            const containerElement = document.createElement('div');
-            containerElement.className = 'container';
-            containerElement.dataset.containerId = data.id;
-            this.containerEl.appendChild(containerElement);
+            const containerEl = document.createElement('div');
+            containerEl.className = 'container';
+            containerEl.dataset.containerId = data.id;
+            containerEl.dataset.containerType = data.type || 'countdown';
 
-            const container = ContainerFactory.create(data.id, data, containerElement);
+            // Place in the appropriate column
+            const columnIndex = Math.min(data.column || 0, this.columnCount - 1);
+            const columnEl = this.getColumnElement(columnIndex);
+            columnEl.appendChild(containerEl);
+
+            const container = ContainerFactory.create(data.id, data, containerEl);
             container.init();
-            DragDrop.setupContainer(containerElement);
+            DragDrop.setupContainer(containerEl);
             this.containers.set(data.id, container);
 
             return container;
         },
 
         async addNewContainer(data) {
+            // If no column specified, add to the column with fewest containers
+            if (data.column === undefined) {
+                const columnCounts = this.columnEls.map(col => col.children.length);
+                data.column = columnCounts.indexOf(Math.min(...columnCounts));
+            }
             const containerData = await Storage.addContainer(data);
             return this.createContainer(containerData, true);
         },
@@ -976,6 +990,16 @@
             if (container) {
                 await Storage.updateContainer(id, data);
                 container.updateData(data);
+            }
+        },
+
+        async moveContainerToColumn(id, newColumnIndex) {
+            const container = this.containers.get(id);
+            if (container && newColumnIndex >= 0 && newColumnIndex < this.columnCount) {
+                container.data.column = newColumnIndex;
+                const columnEl = this.getColumnElement(newColumnIndex);
+                columnEl.appendChild(container.container);
+                await Storage.updateContainer(id, { column: newColumnIndex });
             }
         },
 
@@ -1027,7 +1051,7 @@
     const Modal = {
         mode: 'create', // 'create' | 'edit'
         editingContainerId: null,
-        editingContainerType: null,
+        containerType: 'countdown',
         elements: {},
 
         init() {
@@ -1035,9 +1059,7 @@
                 overlay: document.getElementById('config-modal'),
                 title: document.querySelector('#config-modal .modal h2'),
                 description: document.querySelector('#config-modal .modal p'),
-                typeSelector: document.querySelector('.type-selector'),
-                typeRadios: document.querySelectorAll('input[name="container-type"]'),
-                // Common fields
+                typeSelector: document.getElementById('container-type'),
                 titleInput: document.getElementById('container-title'),
                 descriptionInput: document.getElementById('container-description'),
                 // Countdown fields
@@ -1047,10 +1069,12 @@
                 // Image fields
                 imageFields: document.getElementById('image-fields'),
                 imageUrlInput: document.getElementById('image-url'),
-                imageFileInput: document.getElementById('image-file'),
+                imageFitSelect: document.getElementById('image-fit'),
                 // Text fields
                 textFields: document.getElementById('text-fields'),
                 textContentInput: document.getElementById('text-content'),
+                textFontSizeSelect: document.getElementById('text-font-size'),
+                textAlignmentSelect: document.getElementById('text-alignment'),
                 // Buttons
                 saveBtn: document.getElementById('save-config'),
                 cancelBtn: document.getElementById('cancel-config'),
@@ -1065,75 +1089,57 @@
             this.elements.cancelBtn.addEventListener('click', () => this.close());
             this.elements.deleteBtn.addEventListener('click', () => this.delete());
 
-            // Type selector changes
-            this.elements.typeRadios.forEach(radio => {
-                radio.addEventListener('change', () => this.onTypeChange());
-            });
-
-            // Image file upload handler
-            if (this.elements.imageFileInput) {
-                this.elements.imageFileInput.addEventListener('change', (e) => this.handleImageUpload(e));
+            // Type selector change
+            if (this.elements.typeSelector) {
+                this.elements.typeSelector.addEventListener('change', () => {
+                    this.containerType = this.elements.typeSelector.value;
+                    this.showFieldsForType(this.containerType);
+                });
             }
-        },
-
-        onTypeChange() {
-            const selectedType = this.getSelectedType();
-            this.showFieldsForType(selectedType);
-        },
-
-        getSelectedType() {
-            const checked = document.querySelector('input[name="container-type"]:checked');
-            return checked ? checked.value : 'countdown';
         },
 
         showFieldsForType(type) {
             // Hide all type-specific fields
-            if (this.elements.countdownFields) {
-                this.elements.countdownFields.classList.toggle('hidden', type !== 'countdown');
-            }
-            if (this.elements.imageFields) {
-                this.elements.imageFields.classList.toggle('hidden', type !== 'image');
-            }
-            if (this.elements.textFields) {
-                this.elements.textFields.classList.toggle('hidden', type !== 'text');
-            }
-        },
+            if (this.elements.countdownFields) this.elements.countdownFields.classList.add('hidden');
+            if (this.elements.imageFields) this.elements.imageFields.classList.add('hidden');
+            if (this.elements.textFields) this.elements.textFields.classList.add('hidden');
 
-        handleImageUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                this.elements.imageUrlInput.value = event.target.result;
-            };
-            reader.readAsDataURL(file);
+            // Show fields for selected type
+            switch (type) {
+                case 'countdown':
+                    if (this.elements.countdownFields) this.elements.countdownFields.classList.remove('hidden');
+                    break;
+                case 'image':
+                    if (this.elements.imageFields) this.elements.imageFields.classList.remove('hidden');
+                    break;
+                case 'text':
+                    if (this.elements.textFields) this.elements.textFields.classList.remove('hidden');
+                    break;
+            }
         },
 
         openForCreate() {
             this.mode = 'create';
             this.editingContainerId = null;
-            this.editingContainerType = null;
+            this.containerType = 'countdown';
 
             // Update modal UI
             this.elements.title.textContent = 'Create Container';
-            this.elements.description.textContent = 'Choose a container type and configure it.';
+            this.elements.description.textContent = 'Choose a container type and configure its settings.';
             this.elements.saveBtn.textContent = 'Create';
             this.elements.deleteBtn.classList.add('hidden');
 
-            // Show type selector
+            // Enable type selector
             if (this.elements.typeSelector) {
-                this.elements.typeSelector.classList.remove('hidden');
+                this.elements.typeSelector.disabled = false;
+                this.elements.typeSelector.value = 'countdown';
             }
 
-            // Set default type to countdown
-            const countdownRadio = document.querySelector('input[name="container-type"][value="countdown"]');
-            if (countdownRadio) {
-                countdownRadio.checked = true;
-            }
-            this.showFieldsForType('countdown');
+            // Set defaults
+            this.elements.titleInput.value = '';
+            this.elements.descriptionInput.value = '';
 
-            // Set defaults for countdown
+            // Countdown defaults
             const today = new Date();
             const oneYearFromNow = new Date();
             oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
@@ -1144,32 +1150,27 @@
             if (this.elements.targetDateInput) {
                 this.elements.targetDateInput.value = this.formatInputDate(oneYearFromNow);
             }
-            if (this.elements.titleInput) {
-                this.elements.titleInput.value = '';
-            }
-            if (this.elements.descriptionInput) {
-                this.elements.descriptionInput.value = '';
-            }
-            if (this.elements.imageUrlInput) {
-                this.elements.imageUrlInput.value = '';
-            }
-            if (this.elements.imageFileInput) {
-                this.elements.imageFileInput.value = '';
-            }
-            if (this.elements.textContentInput) {
-                this.elements.textContentInput.value = '';
-            }
+
+            // Image defaults
+            if (this.elements.imageUrlInput) this.elements.imageUrlInput.value = '';
+            if (this.elements.imageFitSelect) this.elements.imageFitSelect.value = 'cover';
+
+            // Text defaults
+            if (this.elements.textContentInput) this.elements.textContentInput.value = '';
+            if (this.elements.textFontSizeSelect) this.elements.textFontSizeSelect.value = 'medium';
+            if (this.elements.textAlignmentSelect) this.elements.textAlignmentSelect.value = 'center';
 
             // Show cancel only if there are existing containers
             this.elements.cancelBtn.classList.toggle('hidden', ContainerManager.getContainerCount() === 0);
 
+            this.showFieldsForType('countdown');
             this.show();
         },
 
         openForEdit(container) {
             this.mode = 'edit';
             this.editingContainerId = container.id;
-            this.editingContainerType = container.data.type || 'countdown';
+            this.containerType = container.data.type || 'countdown';
 
             // Update modal UI
             this.elements.title.textContent = 'Edit Container';
@@ -1178,44 +1179,51 @@
             this.elements.deleteBtn.classList.remove('hidden');
             this.elements.cancelBtn.classList.remove('hidden');
 
-            // Hide type selector in edit mode (can't change type)
+            // Disable type selector when editing
             if (this.elements.typeSelector) {
-                this.elements.typeSelector.classList.add('hidden');
+                this.elements.typeSelector.disabled = true;
+                this.elements.typeSelector.value = this.containerType;
             }
-
-            // Show fields for this container type
-            this.showFieldsForType(this.editingContainerType);
 
             // Populate common fields
             const data = container.getData();
-            if (this.elements.titleInput) {
-                this.elements.titleInput.value = data.title || '';
-            }
-            if (this.elements.descriptionInput) {
-                this.elements.descriptionInput.value = data.description || '';
-            }
+            this.elements.titleInput.value = data.title || '';
+            this.elements.descriptionInput.value = data.description || '';
 
             // Populate type-specific fields
-            if (this.editingContainerType === 'countdown') {
-                if (this.elements.startDateInput) {
-                    this.elements.startDateInput.value = data.startDate || '';
-                }
-                if (this.elements.targetDateInput) {
-                    this.elements.targetDateInput.value = data.targetDate || '';
-                }
-            } else if (this.editingContainerType === 'image') {
-                if (this.elements.imageUrlInput) {
-                    this.elements.imageUrlInput.value = data.imageUrl || '';
-                }
-                if (this.elements.imageFileInput) {
-                    this.elements.imageFileInput.value = '';
-                }
-            } else if (this.editingContainerType === 'text') {
-                if (this.elements.textContentInput) {
-                    this.elements.textContentInput.value = data.text || '';
-                }
+            const typeData = data.data || {};
+
+            switch (this.containerType) {
+                case 'countdown':
+                    if (this.elements.startDateInput) {
+                        this.elements.startDateInput.value = typeData.startDate || '';
+                    }
+                    if (this.elements.targetDateInput) {
+                        this.elements.targetDateInput.value = typeData.targetDate || '';
+                    }
+                    break;
+                case 'image':
+                    if (this.elements.imageUrlInput) {
+                        this.elements.imageUrlInput.value = typeData.imageUrl || '';
+                    }
+                    if (this.elements.imageFitSelect) {
+                        this.elements.imageFitSelect.value = typeData.fit || 'cover';
+                    }
+                    break;
+                case 'text':
+                    if (this.elements.textContentInput) {
+                        this.elements.textContentInput.value = typeData.content || '';
+                    }
+                    if (this.elements.textFontSizeSelect) {
+                        this.elements.textFontSizeSelect.value = typeData.fontSize || 'medium';
+                    }
+                    if (this.elements.textAlignmentSelect) {
+                        this.elements.textAlignmentSelect.value = typeData.alignment || 'center';
+                    }
+                    break;
             }
 
+            this.showFieldsForType(this.containerType);
             this.show();
         },
 
@@ -1235,53 +1243,64 @@
         },
 
         async save() {
-            const type = this.mode === 'edit' ? this.editingContainerType : this.getSelectedType();
-            const titleValue = this.elements.titleInput ? this.elements.titleInput.value : '';
-            const descriptionValue = this.elements.descriptionInput ? this.elements.descriptionInput.value : '';
+            const titleValue = this.elements.titleInput.value;
+            const descriptionValue = this.elements.descriptionInput.value;
 
-            const data = {
-                type,
-                title: titleValue,
-                description: descriptionValue
-            };
+            // Gather type-specific data
+            let typeData = {};
 
-            // Validate and add type-specific fields
-            if (type === 'countdown') {
-                const startValue = this.elements.startDateInput ? this.elements.startDateInput.value : '';
-                const targetValue = this.elements.targetDateInput ? this.elements.targetDateInput.value : '';
+            switch (this.containerType) {
+                case 'countdown':
+                    const startValue = this.elements.startDateInput?.value;
+                    const targetValue = this.elements.targetDateInput?.value;
 
-                if (!startValue || !targetValue) {
-                    alert('Please fill in both dates.');
-                    return;
-                }
+                    if (!startValue || !targetValue) {
+                        alert('Please fill in both dates.');
+                        return;
+                    }
 
-                const startDate = TimeCalc.parseDate(startValue);
-                const targetDate = TimeCalc.parseDate(targetValue);
+                    const startDate = TimeCalc.parseDate(startValue);
+                    const targetDate = TimeCalc.parseDate(targetValue);
 
-                if (targetDate <= startDate) {
-                    alert('Target date must be after start date.');
-                    return;
-                }
+                    if (targetDate <= startDate) {
+                        alert('Target date must be after start date.');
+                        return;
+                    }
 
-                data.startDate = startValue;
-                data.targetDate = targetValue;
-            } else if (type === 'image') {
-                const imageUrl = this.elements.imageUrlInput ? this.elements.imageUrlInput.value : '';
-                if (!imageUrl) {
-                    alert('Please provide an image URL or upload an image.');
-                    return;
-                }
-                data.imageUrl = imageUrl;
-            } else if (type === 'text') {
-                const textContent = this.elements.textContentInput ? this.elements.textContentInput.value : '';
-                data.text = textContent;
+                    typeData = {
+                        startDate: startValue,
+                        targetDate: targetValue
+                    };
+                    break;
+
+                case 'image':
+                    typeData = {
+                        imageUrl: this.elements.imageUrlInput?.value || '',
+                        fit: this.elements.imageFitSelect?.value || 'cover'
+                    };
+                    break;
+
+                case 'text':
+                    typeData = {
+                        content: this.elements.textContentInput?.value || '',
+                        fontSize: this.elements.textFontSizeSelect?.value || 'medium',
+                        alignment: this.elements.textAlignmentSelect?.value || 'center'
+                    };
+                    break;
             }
+
+            const containerData = {
+                type: this.containerType,
+                title: titleValue,
+                description: descriptionValue,
+                data: typeData
+            };
 
             try {
                 if (this.mode === 'create') {
-                    await ContainerManager.addNewContainer(data);
+                    await ContainerManager.addNewContainer(containerData);
                 } else {
-                    await ContainerManager.updateContainer(this.editingContainerId, data);
+                    await ContainerManager.updateContainer(this.editingContainerId, containerData);
                 }
                 this.close();
             } catch (e) {
@@ -1309,6 +1328,7 @@
     const Settings = {
         defaults: {
             theme: 'default',
+            effect: 'none',
             fontSize: {
                 titles: 'medium',
                 metadata: 'medium',
@@ -1334,9 +1354,9 @@
                 this.current.fontSize = { ...this.defaults.fontSize, ...this.current.fontSize };
             }
 
-            // Ensure columns has a default value
-            if (!this.current.columns) {
-                this.current.columns = this.defaults.columns;
+            // Ensure effect exists
+            if (!this.current.effect) {
+                this.current.effect = this.defaults.effect;
             }
 
             this.apply();
@@ -1351,9 +1371,9 @@
                 fontTitles: document.getElementById('font-size-titles'),
                 fontMetadata: document.getElementById('font-size-metadata'),
                 fontCountdown: document.getElementById('font-size-countdown'),
-                gridColumns: document.getElementById('grid-columns'),
+                columnCount: document.getElementById('column-count'),
                 themeRadios: document.querySelectorAll('input[name="theme"]'),
-                containersGrid: document.getElementById('containers-grid')
+                effectRadios: document.querySelectorAll('input[name="effect"]')
             };
         },
 
@@ -1376,13 +1396,20 @@
             this.elements.fontMetadata.addEventListener('change', () => this.saveAndApply());
             this.elements.fontCountdown.addEventListener('change', () => this.saveAndApply());
 
-            // Column changes - apply immediately
-            this.elements.gridColumns.addEventListener('change', () => this.saveAndApply());
+            // Column count changes - apply immediately
+            this.elements.columnCount.addEventListener('change', () => this.saveAndApply());
 
             // Theme changes - apply immediately
             this.elements.themeRadios.forEach(radio => {
                 radio.addEventListener('change', () => this.saveAndApply());
             });
+
+            // Effect changes - apply immediately
+            if (this.elements.effectRadios) {
+                this.elements.effectRadios.forEach(radio => {
+                    radio.addEventListener('change', () => this.saveAndApply());
+                });
+            }
         },
 
         openModal() {
@@ -1403,15 +1430,17 @@
                 root.setAttribute('data-theme', this.current.theme);
             }
 
+            // Apply effect
+            if (this.current.effect === 'none') {
+                root.removeAttribute('data-effect');
+            } else {
+                root.setAttribute('data-effect', this.current.effect);
+            }
+
             // Apply font sizes
             root.setAttribute('data-font-titles', this.current.fontSize.titles);
             root.setAttribute('data-font-metadata', this.current.fontSize.metadata);
             root.setAttribute('data-font-countdown', this.current.fontSize.countdown);
-
-            // Apply grid columns
-            if (this.elements.containersGrid) {
-                this.elements.containersGrid.style.setProperty('--grid-columns', this.current.columns);
-            }
         },
 
         updateUI() {
@@ -1420,13 +1449,20 @@
             this.elements.fontMetadata.value = this.current.fontSize.metadata;
             this.elements.fontCountdown.value = this.current.fontSize.countdown;
 
-            // Update grid columns select
-            this.elements.gridColumns.value = this.current.columns;
+            // Update column count select
+            this.elements.columnCount.value = this.current.columns || this.defaults.columns;
 
             // Update theme radio
             this.elements.themeRadios.forEach(radio => {
                 radio.checked = radio.value === this.current.theme;
             });
+
+            // Update effect radio
+            if (this.elements.effectRadios) {
+                this.elements.effectRadios.forEach(radio => {
+                    radio.checked = radio.value === this.current.effect;
+                });
+            }
         },
 
         async saveAndApply() {
@@ -1434,16 +1470,24 @@
             this.current.fontSize.titles = this.elements.fontTitles.value;
             this.current.fontSize.metadata = this.elements.fontMetadata.value;
             this.current.fontSize.countdown = this.elements.fontCountdown.value;
-            this.current.columns = parseInt(this.elements.gridColumns.value, 10);
+            this.current.columns = parseInt(this.elements.columnCount.value, 10);
 
             const selectedTheme = document.querySelector('input[name="theme"]:checked');
             this.current.theme = selectedTheme ? selectedTheme.value : 'default';
+
+            const selectedEffect = document.querySelector('input[name="effect"]:checked');
+            this.current.effect = selectedEffect ? selectedEffect.value : 'none';
 
             // Apply changes
             this.apply();
 
             // Save to storage
             await Storage.setSettings(this.current);
+
+            // Apply column count to ContainerManager
+            if (typeof ContainerManager !== 'undefined' && ContainerManager.gridEl && ContainerManager.setColumnCount) {
+                ContainerManager.setColumnCount(this.current.columns);
+            }
         }
     };
 
@@ -1451,18 +1495,33 @@
     const DragDrop = {
         draggedElement: null,
         draggedContainerId: null,
-        gridContainer: null,
+        manager: null,
 
-        init(gridContainer) {
-            this.gridContainer = gridContainer;
+        init(manager) {
+            this.manager = manager;
+
+            // Setup column drop targets
+            for (const columnEl of manager.columnEls) {
+                this.setupColumn(columnEl);
+            }
+        },
+
+        setupColumn(columnEl) {
+            columnEl.addEventListener('dragover', (e) => this.handleColumnDragOver(e, columnEl));
+            columnEl.addEventListener('dragenter', (e) => this.handleColumnDragEnter(e, columnEl));
+            columnEl.addEventListener('dragleave', (e) => this.handleColumnDragLeave(e, columnEl));
+            columnEl.addEventListener('drop', (e) => this.handleColumnDrop(e, columnEl));
         },
 
         setupContainer(containerElement) {
+            // Check if drag handle already exists
+            if (containerElement.querySelector('.drag-handle')) return;
+
             // Add drag handle button
             const dragHandle = document.createElement('button');
             dragHandle.className = 'drag-handle';
             dragHandle.title = 'Drag to reorder';
-            dragHandle.innerHTML = '&#x2630;'; // hamburger menu icon
+            dragHandle.innerHTML = '&#x2630;';
             containerElement.insertBefore(dragHandle, containerElement.firstChild);
 
             // Make container draggable
@@ -1478,7 +1537,6 @@
         },
 
         handleDragStart(e, element) {
-            // Don't allow drag in fullscreen mode
             if (element.classList.contains('fullscreen')) {
                 e.preventDefault();
                 return;
@@ -1501,15 +1559,14 @@
 
         handleDragOver(e, element) {
             e.preventDefault();
+            e.stopPropagation();
             e.dataTransfer.dropEffect = 'move';
 
             if (!this.draggedElement || this.draggedElement === element) return;
 
-            // Determine drop position based on mouse position
             const rect = element.getBoundingClientRect();
             const midY = rect.top + rect.height / 2;
 
-            // Clear previous indicators on this element
             element.classList.remove('drop-before', 'drop-after');
 
             if (e.clientY < midY) {
@@ -1521,12 +1578,12 @@
 
         handleDragEnter(e, element) {
             e.preventDefault();
+            e.stopPropagation();
             if (!this.draggedElement || this.draggedElement === element) return;
             element.classList.add('drag-over');
         },
 
         handleDragLeave(e, element) {
-            // Only remove if we're actually leaving the element (not entering a child)
             if (!element.contains(e.relatedTarget)) {
                 element.classList.remove('drag-over', 'drop-before', 'drop-after');
             }
@@ -1534,58 +1591,89 @@
 
         handleDrop(e, targetElement) {
             e.preventDefault();
+            e.stopPropagation();
 
             if (!this.draggedElement || this.draggedElement === targetElement) {
                 this.clearDropIndicators();
                 return;
             }
 
-            // Determine insertion position
-            const insertBefore = targetElement.classList.contains('drop-before');
-
-            // Get all containers and their IDs in current order
-            const containers = Array.from(this.gridContainer.querySelectorAll('.container'));
-            const currentOrder = containers.map(c => c.dataset.containerId);
-
-            // Remove dragged item from current position
-            const draggedId = this.draggedContainerId;
-            const newOrder = currentOrder.filter(id => id !== draggedId);
-
-            // Find target position
-            const targetId = targetElement.dataset.containerId;
-            let targetIndex = newOrder.indexOf(targetId);
-
-            // Insert at appropriate position
-            if (insertBefore) {
-                newOrder.splice(targetIndex, 0, draggedId);
-            } else {
-                newOrder.splice(targetIndex + 1, 0, draggedId);
+            const targetColumn = targetElement.closest('.container-column');
+            if (!targetColumn) {
+                this.clearDropIndicators();
+                return;
             }
 
-            // Reorder DOM
-            this.reorderDOM(newOrder);
+            const targetColumnIndex = parseInt(targetColumn.dataset.columnIndex, 10);
+            const insertBefore = targetElement.classList.contains('drop-before');
 
-            // Persist to storage
-            Storage.reorderContainers(newOrder);
+            if (insertBefore) {
+                targetColumn.insertBefore(this.draggedElement, targetElement);
+            } else {
+                targetColumn.insertBefore(this.draggedElement, targetElement.nextSibling);
+            }
+
+            // Update the container's column data
+            const container = this.manager.containers.get(this.draggedContainerId);
+            if (container) {
+                container.data.column = targetColumnIndex;
+                Storage.updateContainer(this.draggedContainerId, { column: targetColumnIndex });
+            }
 
             this.clearDropIndicators();
         },
 
-        reorderDOM(orderedIds) {
-            orderedIds.forEach(id => {
-                const element = this.gridContainer.querySelector(`[data-container-id="${id}"]`);
-                if (element) {
-                    this.gridContainer.appendChild(element);
-                }
-            });
+        handleColumnDragOver(e, columnEl) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        },
+
+        handleColumnDragEnter(e, columnEl) {
+            e.preventDefault();
+            if (!this.draggedElement) return;
+            columnEl.classList.add('drop-target');
+        },
+
+        handleColumnDragLeave(e, columnEl) {
+            if (!columnEl.contains(e.relatedTarget)) {
+                columnEl.classList.remove('drop-target');
+            }
+        },
+
+        handleColumnDrop(e, columnEl) {
+            e.preventDefault();
+
+            // Only handle if not dropped on a container
+            if (e.target.closest('.container')) return;
+
+            if (!this.draggedElement) {
+                this.clearDropIndicators();
+                return;
+            }
+
+            const targetColumnIndex = parseInt(columnEl.dataset.columnIndex, 10);
+
+            columnEl.appendChild(this.draggedElement);
+
+            const container = this.manager.containers.get(this.draggedContainerId);
+            if (container) {
+                container.data.column = targetColumnIndex;
+                Storage.updateContainer(this.draggedContainerId, { column: targetColumnIndex });
+            }
+
+            this.clearDropIndicators();
         },
 
         clearDropIndicators() {
-            if (!this.gridContainer) return;
-            const containers = this.gridContainer.querySelectorAll('.container');
-            containers.forEach(c => {
-                c.classList.remove('drag-over', 'drop-before', 'drop-after');
-            });
+            if (!this.manager) return;
+
+            for (const col of this.manager.columnEls) {
+                col.classList.remove('drop-target', 'drag-over');
+                const containers = col.querySelectorAll('.container');
+                containers.forEach(c => {
+                    c.classList.remove('drag-over', 'drop-before', 'drop-after');
+                });
+            }
         }
     };
 
@@ -1600,10 +1688,14 @@
             // Initialize modules
             GlobalTimeDisplay.init();
             Modal.init();
-            ContainerManager.init(document.getElementById('containers-grid'));
+
+            // Initialize ContainerManager with column count from settings
+            const columnCount = Settings.current.columns || Settings.defaults.columns;
+            ContainerManager.columnCount = columnCount;
+            ContainerManager.init(document.getElementById('timers-grid'));
 
             // Bind add button
-            const addBtn = document.getElementById('add-container-btn');
+            const addBtn = document.getElementById('add-timer-btn');
             addBtn.addEventListener('click', () => Modal.openForCreate());
 
             // Load containers

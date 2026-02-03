@@ -11,28 +11,17 @@
     <div id="config-modal" class="modal-overlay hidden">
         <div class="modal">
             <h2>Create Container</h2>
-            <p>Choose a container type and configure it.</p>
+            <p>Choose a container type and configure its settings.</p>
 
-            <!-- Type Selector -->
-            <div class="form-group type-selector">
-                <label>Container Type</label>
-                <div class="type-options">
-                    <label class="type-option">
-                        <input type="radio" name="container-type" value="countdown" checked>
-                        <span>Countdown</span>
-                    </label>
-                    <label class="type-option">
-                        <input type="radio" name="container-type" value="image">
-                        <span>Image</span>
-                    </label>
-                    <label class="type-option">
-                        <input type="radio" name="container-type" value="text">
-                        <span>Text</span>
-                    </label>
-                </div>
+            <div class="form-group">
+                <label for="container-type">Container Type</label>
+                <select id="container-type" class="settings-select">
+                    <option value="countdown">Countdown</option>
+                    <option value="image">Image</option>
+                    <option value="text">Text</option>
+                </select>
             </div>
 
-            <!-- Common Fields -->
             <div class="form-group">
                 <label for="container-title">Title</label>
                 <input type="text" id="container-title" placeholder="My Container">
@@ -42,7 +31,7 @@
                 <input type="text" id="container-description" placeholder="Optional description...">
             </div>
 
-            <!-- Countdown-specific Fields -->
+            <!-- Countdown Fields -->
             <div id="countdown-fields">
                 <div class="form-group">
                     <label for="start-date">Start Date</label>
@@ -54,23 +43,44 @@
                 </div>
             </div>
 
-            <!-- Image-specific Fields -->
+            <!-- Image Fields -->
             <div id="image-fields" class="hidden">
                 <div class="form-group">
                     <label for="image-url">Image URL</label>
-                    <div class="file-upload-group">
-                        <input type="text" id="image-url" placeholder="https://example.com/image.jpg">
-                        <label class="file-upload-label" for="image-file">Upload</label>
-                        <input type="file" id="image-file" accept="image/*">
-                    </div>
+                    <input type="url" id="image-url" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="form-group">
+                    <label for="image-fit">Image Fit</label>
+                    <select id="image-fit" class="settings-select">
+                        <option value="cover">Cover (fill, crop)</option>
+                        <option value="contain">Contain (fit, letterbox)</option>
+                        <option value="fill">Fill (stretch)</option>
+                    </select>
                 </div>
             </div>
 
-            <!-- Text-specific Fields -->
+            <!-- Text Fields -->
             <div id="text-fields" class="hidden">
                 <div class="form-group">
-                    <label for="text-content">Content (Markdown supported)</label>
-                    <textarea id="text-content" placeholder="Enter your text here...&#10;&#10;Supports **bold**, *italic*, [links](url), and # headers"></textarea>
+                    <label for="text-content">Content</label>
+                    <textarea id="text-content" rows="4" placeholder="Enter your text, quote, or note..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="text-font-size">Font Size</label>
+                    <select id="text-font-size" class="settings-select">
+                        <option value="small">Small</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="large">Large</option>
+                        <option value="xlarge">Extra Large</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="text-alignment">Alignment</label>
+                    <select id="text-alignment" class="settings-select">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
                 </div>
             </div>
 
@@ -78,7 +88,7 @@
                 <button type="button" id="delete-container" class="btn btn-danger hidden">Delete</button>
                 <div class="modal-actions-right">
                     <button type="button" id="cancel-config" class="btn btn-secondary hidden">Cancel</button>
-                    <button type="button" id="save-config" class="btn btn-primary">Create</button>
+                    <button type="button" id="save-config" class="btn btn-primary">Save</button>
                 </div>
             </div>
         </div>
@@ -86,7 +96,7 @@
 
     <!-- Action Buttons (right-center of screen) -->
     <div class="action-buttons">
-        <button id="add-container-btn" class="action-btn" title="Add Container">+</button>
+        <button id="add-timer-btn" class="action-btn" title="Add Container">+</button>
         <button id="settings-btn" class="action-btn" title="Settings">&#x2699;</button>
     </div>
 
@@ -127,10 +137,12 @@
             <div class="settings-section">
                 <h3>Layout</h3>
                 <div class="form-group">
-                    <label for="grid-columns">Grid Columns</label>
-                    <select id="grid-columns" class="settings-select">
-                        <option value="2">2 Columns</option>
+                    <label for="column-count">Number of Columns</label>
+                    <select id="column-count" class="settings-select">
+                        <option value="1">1 Column</option>
+                        <option value="2" selected>2 Columns</option>
                         <option value="3">3 Columns</option>
+                        <option value="4">4 Columns</option>
                     </select>
                 </div>
             </div>
@@ -153,6 +165,36 @@
                     <label class="theme-option">
                         <input type="radio" name="theme" value="tungsten">
                         <span class="theme-label">Tungsten Monolith</span>
+                    </label>
+                    <label class="theme-option">
+                        <input type="radio" name="theme" value="neon">
+                        <span class="theme-label">Neon Pulse</span>
+                    </label>
+                    <label class="theme-option">
+                        <input type="radio" name="theme" value="forest">
+                        <span class="theme-label">Forest Depths</span>
+                    </label>
+                    <label class="theme-option">
+                        <input type="radio" name="theme" value="solar">
+                        <span class="theme-label">Solar Flare</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Effect</h3>
+                <div class="theme-options">
+                    <label class="theme-option">
+                        <input type="radio" name="effect" value="none" checked>
+                        <span class="theme-label">None</span>
+                    </label>
+                    <label class="theme-option">
+                        <input type="radio" name="effect" value="glass">
+                        <span class="theme-label">Glass</span>
+                    </label>
+                    <label class="theme-option">
+                        <input type="radio" name="effect" value="sand">
+                        <span class="theme-label">Sand</span>
                     </label>
                 </div>
             </div>
@@ -204,7 +246,7 @@
     </section>
 
     <!-- Containers Grid -->
-    <div id="containers-grid" class="containers-grid">
+    <div id="timers-grid" class="timers-grid">
         <!-- Container elements will be dynamically generated -->
     </div>
 

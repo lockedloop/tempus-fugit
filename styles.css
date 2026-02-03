@@ -181,25 +181,41 @@ body {
     border-width: 0.5px;
 }
 
-/* Timers Grid - configurable column layout, aligned with counter bars */
-.containers-grid {
-    display: grid;
-    grid-template-columns: repeat(var(--grid-columns, 2), 1fr);
-    grid-auto-rows: 200px;
-    grid-auto-flow: dense;
+/* Containers Grid - Column-based layout for vertical stickiness */
+.timers-grid {
+    display: flex;
+    flex-direction: row;
     gap: 40px;
     width: 100%;
     padding-left: 190px;  /* label width (140px) + gap (16px) */
     padding-right: 190px; /* matches counter padding */
 }
 
+.container-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-height: 100px;
+    transition: background-color 0.2s;
+}
+
+.container-column.drop-target {
+    background-color: rgba(244, 162, 97, 0.1);
+    border-radius: 12px;
+}
+
 @media (max-width: 899px) {
-    .containers-grid {
-        grid-template-columns: 1fr;
+    .timers-grid {
+        flex-direction: column;
+    }
+
+    .container-column {
+        width: 100%;
     }
 }
 
-/* Widget Container - Class-based for dynamic creation */
+/* Container - Base styles for all container types */
 .container {
     position: relative;
     display: flex;
@@ -208,90 +224,25 @@ body {
     background: var(--modal-bg);
     border-radius: 12px;
     padding: 24px 32px;
-    cursor: grab;
-    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
     overflow: hidden;
-    /* Default to 1 row span */
-    grid-row: span 1;
 }
 
-/* Height size classes using grid-row spans */
-.container[data-height="1"] { grid-row: span 1; }
-.container[data-height="2"] { grid-row: span 2; }
-.container[data-height="3"] { grid-row: span 3; }
-.container[data-height="4"] { grid-row: span 4; }
-.container[data-height="5"] { grid-row: span 5; }
+/* Height Classes - 200px increments */
+.container.height-1 { height: 200px; }
+.container.height-2 { height: 400px; }
+.container.height-3 { height: 600px; }
+.container.height-4 { height: 800px; }
+.container.height-5 { height: 1000px; }
 
-/* Drag-and-drop states */
-.container.dragging {
-    opacity: 0.5;
-    cursor: grabbing;
-}
-
-.container.drag-over {
-    transform: scale(1.02);
-    box-shadow: 0 0 20px rgba(244, 162, 97, 0.5);
-}
-
-/* Drop position indicators */
-.container.drop-before::before,
-.container.drop-after::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--cell-current);
-    border-radius: 2px;
-}
-
-.container.drop-before::before {
-    top: -22px;
-}
-
-.container.drop-after::after {
-    bottom: -22px;
-}
-
-/* Drag handle button */
-.drag-handle {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    background: transparent;
-    border: 1px solid var(--cell-border);
-    color: var(--text-muted);
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
-    cursor: grab;
-    font-size: 14px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.drag-handle:hover {
-    color: var(--text-color);
-    border-color: var(--text-color);
-}
-
-.drag-handle:active {
-    cursor: grabbing;
-}
-
-.container.fullscreen .drag-handle {
-    display: none;
-}
-
-/* Height control buttons - right of drag handle */
+/* Height Controls */
 .height-controls {
     position: absolute;
-    top: 12px;
     left: 44px;
+    top: 12px;
     display: flex;
+    flex-direction: row;
     gap: 4px;
+    z-index: 5;
 }
 
 .height-btn {
@@ -302,7 +253,8 @@ body {
     height: 28px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 10px;
+    line-height: 1;
     transition: all 0.2s;
     display: flex;
     align-items: center;
@@ -314,25 +266,9 @@ body {
     border-color: var(--text-color);
 }
 
-.height-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
+/* Hide height controls in fullscreen */
 .container.fullscreen .height-controls {
     display: none;
-}
-
-/* At minimum height, disable collapse button */
-.container[data-height="1"] .height-btn-collapse {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-/* At maximum height, disable expand button */
-.container[data-height="5"] .height-btn-expand {
-    opacity: 0.3;
-    cursor: not-allowed;
 }
 
 .container header {
@@ -351,13 +287,25 @@ body {
     color: var(--text-muted);
 }
 
-/* Weeks Section */
+/* Container Body - wrapper for type-specific content */
+.container-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Weeks Section (Countdown) */
 .weeks-section {
     display: flex;
     flex-direction: column;
     gap: 3px;
     width: 100%;
-    max-height: 300px;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--text-muted) transparent;
@@ -423,7 +371,7 @@ body {
 }
 
 /* Footer */
-.container .timer-footer {
+.container .container-footer {
     margin-top: 16px;
     text-align: center;
     font-size: 11px;
@@ -450,6 +398,8 @@ body {
     padding: 32px;
     max-width: 400px;
     width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal h2 {
@@ -474,7 +424,8 @@ body {
     color: var(--text-muted);
 }
 
-.form-group input {
+.form-group input,
+.form-group textarea {
     width: 100%;
     padding: 12px;
     font-size: 16px;
@@ -482,9 +433,16 @@ body {
     border-radius: 6px;
     background: var(--bg-color);
     color: var(--text-color);
+    font-family: inherit;
 }
 
-.form-group input:focus {
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
     outline: none;
     border-color: var(--cell-current);
 }
@@ -541,7 +499,7 @@ body {
     opacity: 0.9;
 }
 
-/* Edit Button - Top Right Corner of each timer */
+/* Edit Button - Top Right Corner of each container */
 .edit-btn {
     position: absolute;
     top: 12px;
@@ -565,23 +523,20 @@ body {
     border-color: var(--text-color);
 }
 
-/* Widget Title and Description in Header (legacy aliases) */
-.timer-title-display,
-.widget-title-display {
+/* Container Title and Description in Header */
+.container-title-display {
     font-size: 24px;
     font-weight: 600;
     margin: 0;
 }
 
-.timer-description-display,
-.widget-description-display {
+.container-description-display {
     font-size: 14px;
     color: var(--text-muted);
     margin-bottom: 8px;
 }
 
-.timer-description-display:empty,
-.widget-description-display:empty {
+.container-description-display:empty {
     display: none;
 }
 
@@ -598,37 +553,44 @@ body {
 /* LED Countdown Display */
 .led-countdown {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+    gap: 12px;
     margin-top: 20px;
+    width: 100%;
 }
 
 .led-time {
     font-family: 'Orbitron', monospace;
-    font-size: 32px;
+    font-size: 20px;
     font-weight: 700;
-    letter-spacing: 4px;
+    letter-spacing: 2px;
     color: var(--cell-current);
+    white-space: nowrap;
 }
 
 .led-time span {
     display: inline-block;
-    min-width: 2ch;
     text-align: center;
 }
 
 .led-labels {
-    display: flex;
-    gap: 28px;
-    margin-top: 4px;
-    font-size: 10px;
-    color: var(--text-muted);
-    letter-spacing: 2px;
+    display: none;
 }
 
-.led-labels span {
-    min-width: 2ch;
-    text-align: center;
+/* Progress bar */
+.progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--cell-border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--cell-current);
+    transition: width 0.3s ease;
 }
 
 /* Expand Button */
@@ -653,6 +615,57 @@ body {
 .expand-btn:hover {
     color: var(--text-color);
     border-color: var(--text-color);
+}
+
+/* Drag Handle */
+.drag-handle {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: transparent;
+    border: 1px solid var(--cell-border);
+    color: var(--text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: grab;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drag-handle:hover {
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Drag and Drop States */
+.container.dragging {
+    opacity: 0.5;
+    transform: scale(0.98);
+}
+
+.container.drag-over {
+    box-shadow: 0 0 0 2px var(--cell-current);
+}
+
+.container.drop-before {
+    box-shadow: 0 -3px 0 0 var(--cell-current);
+}
+
+.container.drop-after {
+    box-shadow: 0 3px 0 0 var(--cell-current);
+}
+
+/* Hide drag handle in fullscreen */
+.container.fullscreen .drag-handle {
+    display: none;
 }
 
 /* Close Button (hidden by default, shown in fullscreen) */
@@ -690,16 +703,17 @@ body {
     z-index: 1000;
     border-radius: 0;
     overflow-y: auto;
-    grid-row: auto !important;
-    min-height: 100vh;
+    max-height: none;
     padding: 48px;
+    height: auto !important;
 }
 
 /* Preserve original content width in fullscreen */
 .container.fullscreen header,
+.container.fullscreen .container-body,
 .container.fullscreen .weeks-section,
 .container.fullscreen .led-countdown,
-.container.fullscreen .timer-footer {
+.container.fullscreen .container-footer {
     max-width: 900px;
     width: 100%;
 }
@@ -707,14 +721,13 @@ body {
 /* Show info text below title in fullscreen */
 .container.fullscreen .weeks-count,
 .container.fullscreen .target-subtitle,
-.container.fullscreen .timer-description-display {
+.container.fullscreen .container-description-display {
     display: block;
 }
 
 .container.fullscreen .weeks-section {
     max-height: none;
 }
-
 
 .container.fullscreen .close-btn {
     display: flex;
@@ -732,13 +745,12 @@ body {
 /* Hide header elements (moved to info popup) */
 .weeks-count,
 .target-subtitle,
-.timer-description-display {
+.container-description-display {
     display: none;
 }
 
 /* Hide footer stats */
-.timer-footer,
-.widget-footer {
+.container-footer {
     display: none;
 }
 
@@ -785,17 +797,11 @@ body {
     display: block;
 }
 
-.info-popup .info-weeks {
+.info-popup .info-title {
     font-size: 16px;
     font-weight: 600;
     color: var(--cell-current);
     margin-bottom: 4px;
-}
-
-.info-popup .info-dates {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-bottom: 8px;
 }
 
 .info-popup .info-description {
@@ -807,210 +813,106 @@ body {
     display: none;
 }
 
-/* New LED countdown style (row layout with progress bar) */
-.led-countdown {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-    margin-top: 20px;
-    width: 100%;
-}
-
-.led-time {
-    font-family: 'Orbitron', monospace;
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    color: var(--cell-current);
-    white-space: nowrap;
-}
-
-.led-time span {
-    display: inline-block;
-    text-align: center;
-}
-
-.led-labels {
-    display: none;
-}
-
-/* Progress bar */
-.progress-bar {
-    flex: 1;
-    height: 6px;
-    background: var(--cell-border);
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: var(--cell-current);
-    transition: width 0.3s ease;
-}
-
 /* Hide info button in fullscreen */
 .container.fullscreen .info-btn {
     display: none;
 }
 
-/* ==================== Image Widget Styles ==================== */
-.container[data-type="image"] .image-container {
-    flex: 1;
-    width: 100%;
+/* ==================== Image Container Styles ==================== */
+
+.image-body {
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    flex: 1;
     min-height: 0;
+    overflow: hidden;
 }
 
-.container[data-type="image"] .widget-image {
+.image-body img {
     max-width: 100%;
     max-height: 100%;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+.image-body[data-fit="cover"] img {
+    object-fit: cover;
+}
+
+.image-body[data-fit="contain"] img {
     object-fit: contain;
 }
 
-.container[data-type="image"] header {
-    flex-shrink: 0;
+.image-body[data-fit="fill"] img {
+    object-fit: fill;
 }
 
-/* ==================== Text Widget Styles ==================== */
-.container[data-type="text"] .text-content {
-    flex: 1;
-    width: 100%;
-    padding: 16px;
-    font-size: 16px;
-    line-height: 1.6;
-    text-align: center;
-    overflow-y: auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-.container[data-type="text"] .text-content h1 {
-    font-size: 1.5em;
-    margin-bottom: 0.5em;
-    font-family: 'Orbitron', sans-serif;
-}
-
-.container[data-type="text"] .text-content h2 {
-    font-size: 1.25em;
-    margin-bottom: 0.5em;
-    font-family: 'Orbitron', sans-serif;
-}
-
-.container[data-type="text"] .text-content a {
-    color: var(--cell-current);
-    text-decoration: none;
-}
-
-.container[data-type="text"] .text-content a:hover {
-    text-decoration: underline;
-}
-
-.container[data-type="text"] header {
-    flex-shrink: 0;
-}
-
-/* Widget footer (display controlled by .timer-footer, .widget-footer rule above) */
-.widget-footer {
-    margin-top: 16px;
-    text-align: center;
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-/* ==================== Type Selector Styles ==================== */
-.type-selector {
-    margin-bottom: 20px;
-}
-
-.type-options {
-    display: flex;
-    gap: 8px;
-}
-
-.type-option {
-    flex: 1;
+.image-placeholder {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 12px;
-    border: 1px solid var(--cell-border);
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.type-option:hover {
-    border-color: var(--text-muted);
-}
-
-.type-option input[type="radio"] {
-    accent-color: var(--cell-current);
-    cursor: pointer;
-}
-
-.type-option input[type="radio"]:checked + span {
-    color: var(--cell-current);
-}
-
-/* Type-specific form fields */
-#countdown-fields,
-#image-fields,
-#text-fields {
-    transition: opacity 0.2s;
-}
-
-#text-content {
     width: 100%;
-    min-height: 120px;
-    padding: 12px;
-    font-size: 14px;
-    font-family: inherit;
-    border: 1px solid var(--cell-border);
-    border-radius: 6px;
-    background: var(--bg-color);
-    color: var(--text-color);
-    resize: vertical;
-}
-
-#text-content:focus {
-    outline: none;
-    border-color: var(--cell-current);
-}
-
-.file-upload-group {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.file-upload-group input[type="text"] {
-    flex: 1;
-}
-
-.file-upload-label {
-    padding: 12px 16px;
-    font-size: 14px;
-    border: 1px solid var(--cell-border);
-    border-radius: 6px;
-    background: var(--bg-color);
+    height: 100%;
+    border: 2px dashed var(--cell-border);
+    border-radius: 8px;
     color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
+    font-size: 14px;
 }
 
-.file-upload-label:hover {
-    color: var(--text-color);
-    border-color: var(--text-color);
+/* ==================== Text Container Styles ==================== */
+
+.text-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 16px;
 }
 
-#image-file {
-    display: none;
+.text-content {
+    width: 100%;
+    line-height: 1.6;
+}
+
+.text-body[data-alignment="left"] .text-content {
+    text-align: left;
+}
+
+.text-body[data-alignment="center"] .text-content {
+    text-align: center;
+}
+
+.text-body[data-alignment="right"] .text-content {
+    text-align: right;
+}
+
+.text-body[data-font-size="small"] .text-content {
+    font-size: 14px;
+}
+
+.text-body[data-font-size="medium"] .text-content {
+    font-size: 18px;
+}
+
+.text-body[data-font-size="large"] .text-content {
+    font-size: 24px;
+}
+
+.text-body[data-font-size="xlarge"] .text-content {
+    font-size: 32px;
+}
+
+.text-placeholder {
+    color: var(--text-muted);
+    font-style: italic;
 }
 
 /* ==================== Theme Variations ==================== */
@@ -1051,18 +953,125 @@ body {
     --modal-bg: #111111;
 }
 
+/* Neon Pulse (Cyberpunk Pink/Purple) */
+[data-theme="neon"] {
+    --bg-color: #0D0014;
+    --text-color: #F0E6FF;
+    --text-muted: #9D7AB8;
+    --cell-filled: #FF00FF;
+    --cell-empty: transparent;
+    --cell-current: #00FFFF;
+    --cell-border: #6B2D8B;
+    --modal-bg: #1A0026;
+}
+
+/* Forest Depths (Deep Green/Emerald) */
+[data-theme="forest"] {
+    --bg-color: #0A140A;
+    --text-color: #D4E5D4;
+    --text-muted: #6B8B6B;
+    --cell-filled: #2ECC71;
+    --cell-empty: transparent;
+    --cell-current: #1ABC9C;
+    --cell-border: #1E3B1E;
+    --modal-bg: #0F1F0F;
+}
+
+/* Solar Flare (Warm Gold/Yellow) */
+[data-theme="solar"] {
+    --bg-color: #141008;
+    --text-color: #FFF4D6;
+    --text-muted: #B89E5C;
+    --cell-filled: #FFD700;
+    --cell-empty: transparent;
+    --cell-current: #FF8C00;
+    --cell-border: #4A3C1A;
+    --modal-bg: #1F1810;
+}
+
+/* ==================== Effect Variations ==================== */
+
+/* Glass Effect */
+[data-effect="glass"] .container {
+    background: rgba(26, 26, 26, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+[data-effect="glass"] .container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent);
+}
+
+[data-effect="glass"] .modal {
+    background: rgba(26, 26, 26, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Sand Effect */
+[data-effect="sand"] .container {
+    background: var(--modal-bg);
+    border: none;
+    box-shadow: none;
+    position: relative;
+}
+
+[data-effect="sand"] .container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    border-radius: 12px;
+}
+
+[data-effect="sand"] .modal {
+    background: var(--modal-bg);
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+[data-effect="sand"] .modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    border-radius: 12px;
+}
+
 /* ==================== Font Size Variations ==================== */
 
 /* Small font sizes */
-[data-font-titles="small"] .timer-title-display,
-[data-font-titles="small"] .widget-title-display,
+[data-font-titles="small"] .container-title-display,
 [data-font-titles="small"] .container h2 {
     font-size: 20px;
 }
 
 [data-font-metadata="small"] .year-label,
-[data-font-metadata="small"] .timer-footer,
-[data-font-metadata="small"] .widget-footer,
+[data-font-metadata="small"] .container-footer,
 [data-font-metadata="small"] .subtitle {
     font-size: 10px;
 }
@@ -1074,15 +1083,13 @@ body {
 /* Medium font sizes (default - no changes needed) */
 
 /* Large font sizes */
-[data-font-titles="large"] .timer-title-display,
-[data-font-titles="large"] .widget-title-display,
+[data-font-titles="large"] .container-title-display,
 [data-font-titles="large"] .container h2 {
     font-size: 28px;
 }
 
 [data-font-metadata="large"] .year-label,
-[data-font-metadata="large"] .timer-footer,
-[data-font-metadata="large"] .widget-footer,
+[data-font-metadata="large"] .container-footer,
 [data-font-metadata="large"] .subtitle {
     font-size: 14px;
 }
