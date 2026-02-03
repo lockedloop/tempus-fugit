@@ -215,6 +215,24 @@ body {
     flex-direction: column;
     gap: 3px;
     width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) transparent;
+}
+
+/* Webkit scrollbar styling */
+.weeks-section::-webkit-scrollbar {
+    width: 6px;
+}
+
+.weeks-section::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.weeks-section::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 3px;
 }
 
 .year-row {
@@ -224,10 +242,10 @@ body {
 }
 
 .year-label {
-    width: 50px;
+    width: 40px;
     text-align: left;
-    padding-right: 10px;
-    font-size: 11px;
+    padding-right: 5px;
+    font-size: 12px;
     color: var(--text-muted);
     flex-shrink: 0;
 }
@@ -244,12 +262,12 @@ body {
 }
 
 .week-cell {
-    width: 11px;
+    flex: 1;
+    min-width: 11px;
     height: 8px;
     border: 1px solid var(--cell-border);
     border-radius: 1px;
     background: var(--cell-empty);
-    flex-shrink: 0;
 }
 
 .week-cell.filled {
@@ -466,4 +484,226 @@ body {
 .led-labels span {
     min-width: 2ch;
     text-align: center;
+}
+
+/* Expand Button */
+.expand-btn {
+    position: absolute;
+    top: 12px;
+    right: 44px;
+    background: transparent;
+    border: 1px solid var(--cell-border);
+    color: var(--text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.expand-btn:hover {
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
+/* Close Button (hidden by default, shown in fullscreen) */
+.close-btn {
+    display: none;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: 1px solid var(--cell-border);
+    color: var(--text-muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: all 0.2s;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+}
+
+.close-btn:hover {
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
+/* Fullscreen Mode */
+.countdown-container.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    border-radius: 0;
+    overflow-y: auto;
+    max-height: none;
+    padding: 48px;
+}
+
+/* Preserve original content width in fullscreen */
+.countdown-container.fullscreen header,
+.countdown-container.fullscreen .weeks-section,
+.countdown-container.fullscreen .led-countdown,
+.countdown-container.fullscreen .timer-footer {
+    max-width: 900px;
+    width: 100%;
+}
+
+/* Show info text below title in fullscreen */
+.countdown-container.fullscreen .weeks-count,
+.countdown-container.fullscreen .target-subtitle,
+.countdown-container.fullscreen .timer-description-display {
+    display: block;
+}
+
+.countdown-container.fullscreen .weeks-section {
+    max-height: none;
+}
+
+
+.countdown-container.fullscreen .close-btn {
+    display: flex;
+    position: fixed;
+}
+
+.countdown-container.fullscreen .expand-btn {
+    display: none;
+}
+
+.countdown-container.fullscreen .edit-btn {
+    display: none;
+}
+
+/* Hide header elements (moved to info popup) */
+.weeks-count,
+.target-subtitle,
+.timer-description-display {
+    display: none;
+}
+
+/* Hide footer stats */
+.timer-footer {
+    display: none;
+}
+
+/* Info Button */
+.info-btn {
+    position: absolute;
+    top: 12px;
+    right: 76px;
+    background: transparent;
+    border: 1px solid var(--cell-border);
+    color: var(--text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-btn:hover {
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
+/* Info Popup */
+.info-popup {
+    position: absolute;
+    top: 48px;
+    right: 12px;
+    background: var(--modal-bg);
+    border: 1px solid var(--cell-border);
+    padding: 12px;
+    border-radius: 6px;
+    display: none;
+    z-index: 10;
+    text-align: left;
+    min-width: 200px;
+}
+
+.info-popup.visible {
+    display: block;
+}
+
+.info-popup .info-weeks {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--cell-current);
+    margin-bottom: 4px;
+}
+
+.info-popup .info-dates {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.info-popup .info-description {
+    font-size: 12px;
+    color: var(--text-color);
+}
+
+.info-popup .info-description:empty {
+    display: none;
+}
+
+/* New LED countdown style (row layout with progress bar) */
+.led-countdown {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.led-time {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--cell-current);
+    white-space: nowrap;
+}
+
+.led-time span {
+    display: inline-block;
+    text-align: center;
+}
+
+.led-labels {
+    display: none;
+}
+
+/* Progress bar */
+.progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--cell-border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--cell-current);
+    transition: width 0.3s ease;
+}
+
+/* Hide info button in fullscreen */
+.countdown-container.fullscreen .info-btn {
+    display: none;
 }

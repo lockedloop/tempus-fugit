@@ -359,7 +359,15 @@
 
         render() {
             this.container.innerHTML = `
+                <button class="info-btn" title="Info">&#x2139;</button>
+                <button class="expand-btn" title="Expand">&#x26F6;</button>
                 <button class="edit-btn" title="Edit Timer">&#128295;</button>
+                <button class="close-btn" title="Close">&#x2715;</button>
+                <div class="info-popup">
+                    <div class="info-weeks"></div>
+                    <div class="info-dates"></div>
+                    <div class="info-description"></div>
+                </div>
                 <header>
                     <h2 class="timer-title-display">-- Weeks</h2>
                     <div class="timer-description-display subtitle"></div>
@@ -369,11 +377,9 @@
                 <section class="weeks-section"></section>
                 <div class="led-countdown">
                     <div class="led-time">
-                        <span class="led-weeks">00</span>:<span class="led-days">00</span>:<span class="led-hours">00</span>:<span class="led-minutes">00</span>:<span class="led-seconds">00</span>
+                        <span class="led-days">0000</span>D : <span class="led-hours">00</span>H : <span class="led-minutes">00</span>M : <span class="led-seconds">00</span>S
                     </div>
-                    <div class="led-labels">
-                        <span>WW</span><span>DD</span><span>HH</span><span>MM</span><span>SS</span>
-                    </div>
+                    <div class="progress-bar"><div class="progress-fill"></div></div>
                 </div>
                 <footer class="timer-footer"><span class="stats"></span></footer>
             `;
@@ -382,22 +388,38 @@
         cacheElements() {
             this.elements = {
                 editBtn: this.container.querySelector('.edit-btn'),
+                expandBtn: this.container.querySelector('.expand-btn'),
+                closeBtn: this.container.querySelector('.close-btn'),
+                infoBtn: this.container.querySelector('.info-btn'),
+                infoPopup: this.container.querySelector('.info-popup'),
+                infoWeeks: this.container.querySelector('.info-weeks'),
+                infoDates: this.container.querySelector('.info-dates'),
+                infoDescription: this.container.querySelector('.info-description'),
                 titleDisplay: this.container.querySelector('.timer-title-display'),
                 descriptionDisplay: this.container.querySelector('.timer-description-display'),
                 weeksCount: this.container.querySelector('.weeks-count'),
                 targetSubtitle: this.container.querySelector('.target-subtitle'),
                 weeksSection: this.container.querySelector('.weeks-section'),
-                ledWeeks: this.container.querySelector('.led-weeks'),
                 ledDays: this.container.querySelector('.led-days'),
                 ledHours: this.container.querySelector('.led-hours'),
                 ledMinutes: this.container.querySelector('.led-minutes'),
                 ledSeconds: this.container.querySelector('.led-seconds'),
+                progressFill: this.container.querySelector('.progress-fill'),
                 stats: this.container.querySelector('.stats')
             };
 
             // Bind edit button
             this.elements.editBtn.addEventListener('click', () => {
                 Modal.openForEdit(this);
+            });
+
+            // Bind expand/close buttons
+            this.elements.expandBtn.addEventListener('click', () => this.enterFullscreen());
+            this.elements.closeBtn.addEventListener('click', () => this.exitFullscreen());
+
+            // Bind info button toggle
+            this.elements.infoBtn.addEventListener('click', () => {
+                this.elements.infoPopup.classList.toggle('visible');
             });
         }
 
@@ -415,6 +437,12 @@
             this.elements.descriptionDisplay.textContent = description || '';
             this.elements.targetSubtitle.textContent =
                 `${TimeCalc.formatDate(this.startDate)} → ${TimeCalc.formatDate(this.targetDate)}`;
+
+            // Populate info popup
+            this.elements.infoWeeks.textContent = `${this.totalWeeks.toLocaleString()} Weeks`;
+            this.elements.infoDates.textContent =
+                `${TimeCalc.formatDate(this.startDate)} → ${TimeCalc.formatDate(this.targetDate)}`;
+            this.elements.infoDescription.textContent = description || '';
         }
 
         update(now) {
@@ -424,6 +452,13 @@
             this.generateWeeksGrid(elapsedWeeks);
             this.updateLedCountdown(remaining);
             this.updateStats(elapsedWeeks);
+
+            // Update progress bar once per minute (when seconds = 0) or on first call
+            const currentSecond = now.getSeconds();
+            if (currentSecond === 0 || this.lastProgressUpdate === undefined) {
+                this.updateProgress();
+                this.lastProgressUpdate = now.getMinutes();
+            }
         }
 
         generateWeeksGrid(elapsedWeeks) {
@@ -459,12 +494,18 @@
                 row.appendChild(grid);
                 this.elements.weeksSection.appendChild(row);
             }
+
+            // Scroll current week into view
+            const currentCell = this.elements.weeksSection.querySelector('.week-cell.current');
+            if (currentCell) {
+                currentCell.scrollIntoView({ block: 'center', behavior: 'instant' });
+            }
         }
 
         updateLedCountdown(remaining) {
-            const pad = (n) => String(n).padStart(2, '0');
-            this.elements.ledWeeks.textContent = pad(remaining.weeks);
-            this.elements.ledDays.textContent = pad(remaining.days);
+            const pad = (n, len = 2) => String(n).padStart(len, '0');
+            const totalDays = remaining.weeks * 7 + remaining.days;
+            this.elements.ledDays.textContent = pad(totalDays, 4);
             this.elements.ledHours.textContent = pad(remaining.hours);
             this.elements.ledMinutes.textContent = pad(remaining.minutes);
             this.elements.ledSeconds.textContent = pad(remaining.seconds);
@@ -480,8 +521,29 @@
                 `${elapsedWeeks.toLocaleString()} weeks elapsed`;
         }
 
+        updateProgress() {
+            const total = this.targetDate - this.startDate;
+            const elapsed = Date.now() - this.startDate;
+            const percent = Math.min(100, Math.max(0, (elapsed / total) * 100));
+            this.elements.progressFill.style.width = `${percent}%`;
+        }
+
         destroy() {
             this.container.remove();
+        }
+
+        enterFullscreen() {
+            this.container.classList.add('fullscreen');
+            document.addEventListener('keydown', this.handleEsc);
+        }
+
+        exitFullscreen() {
+            this.container.classList.remove('fullscreen');
+            document.removeEventListener('keydown', this.handleEsc);
+        }
+
+        handleEsc = (e) => {
+            if (e.key === 'Escape') this.exitFullscreen();
         }
 
         getData() {
