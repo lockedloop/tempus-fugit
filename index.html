@@ -38,42 +38,111 @@
         </div>
     </div>
 
-    <!-- Add Timer Button -->
-    <button id="add-timer-btn" class="add-timer-btn" title="Add Timer">+</button>
-
-    <!-- Logo -->
-    <div id="logo">
-        <!-- Hourglass -->
-        <svg id="hourglass" viewBox="0 0 64 64" width="75" height="75">
-            <!-- Hourglass frame -->
-            <path class="hourglass-frame" d="M12 4 h40 v4 c0 12 -12 16 -16 24 c4 8 16 12 16 24 v4 h-40 v-4 c0 -12 12 -16 16 -24 c-4 -8 -16 -12 -16 -24 v-4 z"
-                  fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            <!-- Top sand -->
-            <path class="hourglass-sand-top" d="M18 12 c0 8 8 12 14 18 c6 -6 14 -10 14 -18 z" fill="currentColor"/>
-            <!-- Bottom sand -->
-            <path class="hourglass-sand-bottom" d="M18 52 c0 -8 8 -12 14 -18 c6 6 14 10 14 18 z" fill="currentColor"/>
-            <!-- Falling sand stream -->
-            <line class="hourglass-stream" x1="32" y1="30" x2="32" y2="34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+    <!-- Action Buttons (right-center of screen) -->
+    <div class="action-buttons">
+        <button id="add-timer-btn" class="action-btn" title="Add Timer">+</button>
+        <button id="settings-btn" class="action-btn" title="Settings">&#x2699;</button>
     </div>
 
-    <!-- Time Counters - Full Width Top Section -->
-    <section id="time-counters">
-        <div class="counter">
-            <span class="counter-label" id="week-label">Week 1</span>
-            <div id="days-grid" class="counter-grid days-grid"></div>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal settings-modal">
+            <h2>Settings</h2>
+            <p>Customize your display preferences.</p>
+
+            <div class="settings-section">
+                <h3>Font Sizes</h3>
+                <div class="form-group">
+                    <label for="font-size-titles">Titles</label>
+                    <select id="font-size-titles" class="settings-select">
+                        <option value="small">Small (20px)</option>
+                        <option value="medium" selected>Medium (24px)</option>
+                        <option value="large">Large (28px)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="font-size-metadata">Years / Metadata</label>
+                    <select id="font-size-metadata" class="settings-select">
+                        <option value="small">Small (10px)</option>
+                        <option value="medium" selected>Medium (12px)</option>
+                        <option value="large">Large (14px)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="font-size-countdown">Countdowns</label>
+                    <select id="font-size-countdown" class="settings-select">
+                        <option value="small">Small (16px)</option>
+                        <option value="medium" selected>Medium (20px)</option>
+                        <option value="large">Large (24px)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Theme</h3>
+                <div class="theme-options">
+                    <label class="theme-option">
+                        <input type="radio" name="theme" value="default" checked>
+                        <span class="theme-label">Current (Default)</span>
+                    </label>
+                    <label class="theme-option">
+                        <input type="radio" name="theme" value="phosphor">
+                        <span class="theme-label">Phosphor &amp; Void</span>
+                    </label>
+                    <label class="theme-option">
+                        <input type="radio" name="theme" value="cryo">
+                        <span class="theme-label">Cryo-Stasis</span>
+                    </label>
+                    <label class="theme-option">
+                        <input type="radio" name="theme" value="tungsten">
+                        <span class="theme-label">Tungsten Monolith</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <div class="modal-actions-right">
+                    <button type="button" id="close-settings" class="btn btn-secondary">Close</button>
+                </div>
+            </div>
         </div>
-        <div class="counter">
-            <span class="counter-label" id="date-label">Jan 1</span>
-            <div id="hours-grid" class="counter-grid hours-grid"></div>
+    </div>
+
+    <!-- Top Section with Counters and Hourglass -->
+    <section id="top-section">
+        <!-- Time Counters -->
+        <div id="time-counters">
+            <div class="counter">
+                <span class="counter-label" id="week-label">Week 1</span>
+                <div id="days-grid" class="counter-grid days-grid"></div>
+            </div>
+            <div class="counter">
+                <span class="counter-label" id="date-label">Jan 1</span>
+                <div id="hours-grid" class="counter-grid hours-grid"></div>
+            </div>
+            <div class="counter">
+                <span class="counter-label" id="time-label">00:00</span>
+                <div id="minutes-grid" class="counter-grid minutes-grid"></div>
+            </div>
+            <div class="counter">
+                <span class="counter-label" id="seconds-label">:00</span>
+                <div id="seconds-grid" class="counter-grid seconds-grid"></div>
+            </div>
         </div>
-        <div class="counter">
-            <span class="counter-label" id="time-label">00:00</span>
-            <div id="minutes-grid" class="counter-grid minutes-grid"></div>
-        </div>
-        <div class="counter">
-            <span class="counter-label" id="seconds-label">:00</span>
-            <div id="seconds-grid" class="counter-grid seconds-grid"></div>
+
+        <!-- Hourglass -->
+        <div id="logo">
+            <svg id="hourglass" viewBox="0 0 64 64" width="75" height="75">
+                <!-- Hourglass frame -->
+                <path class="hourglass-frame" d="M12 4 h40 v4 c0 12 -12 16 -16 24 c4 8 16 12 16 24 v4 h-40 v-4 c0 -12 12 -16 16 -24 c-4 -8 -16 -12 -16 -24 v-4 z"
+                      fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Top sand -->
+                <path class="hourglass-sand-top" d="M18 12 c0 8 8 12 14 18 c6 -6 14 -10 14 -18 z" fill="currentColor"/>
+                <!-- Bottom sand -->
+                <path class="hourglass-sand-bottom" d="M18 52 c0 -8 8 -12 14 -18 c6 6 14 10 14 18 z" fill="currentColor"/>
+                <!-- Falling sand stream -->
+                <line class="hourglass-stream" x1="32" y1="30" x2="32" y2="34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
         </div>
     </section>
 

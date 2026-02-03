@@ -4,6 +4,7 @@
     // ==================== Storage Module ====================
     const Storage = {
         KEY_TIMERS: 'speedrun_timers',
+        KEY_SETTINGS: 'speedrun_settings',
         // Legacy keys for migration
         LEGACY_KEYS: {
             target: 'speedrun_target_date',
@@ -109,6 +110,60 @@
             const filtered = timers.filter(t => t.id !== id);
             await this.set(filtered);
             return filtered;
+        },
+
+        async getSettings() {
+            // Try chrome.storage.sync first, fall back to localStorage
+            if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+                try {
+                    return new Promise((resolve) => {
+                        chrome.storage.sync.get([this.KEY_SETTINGS], (result) => {
+                            if (chrome.runtime.lastError) {
+                                resolve(this.getSettingsFromLocalStorage());
+                            } else {
+                                const settings = result[this.KEY_SETTINGS];
+                                if (settings) {
+                                    resolve(settings);
+                                } else {
+                                    resolve(null);
+                                }
+                            }
+                        });
+                    });
+                } catch (e) {
+                    return this.getSettingsFromLocalStorage();
+                }
+            }
+            return this.getSettingsFromLocalStorage();
+        },
+
+        getSettingsFromLocalStorage() {
+            const stored = localStorage.getItem(this.KEY_SETTINGS);
+            if (stored) {
+                try {
+                    return JSON.parse(stored);
+                } catch (e) {
+                    return null;
+                }
+            }
+            return null;
+        },
+
+        async setSettings(settings) {
+            const data = JSON.stringify(settings);
+            localStorage.setItem(this.KEY_SETTINGS, data);
+
+            if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+                try {
+                    return new Promise((resolve) => {
+                        chrome.storage.sync.set({ [this.KEY_SETTINGS]: settings }, () => {
+                            resolve();
+                        });
+                    });
+                } catch (e) {
+                    // Ignore chrome storage errors
+                }
+            }
         },
 
         async migrateFromLegacy() {
@@ -805,10 +860,135 @@
         }
     };
 
+    // ==================== Settings Module ====================
+    const Settings = {
+        defaults: {
+            theme: 'default',
+            fontSize: {
+                titles: 'medium',
+                metadata: 'medium',
+                countdown: 'medium'
+            }
+        },
+        current: null,
+        elements: {},
+
+        async init() {
+            this.cacheElements();
+            this.bindEvents();
+
+            // Load saved settings or use defaults
+            const saved = await Storage.getSettings();
+            this.current = saved ? { ...this.defaults, ...saved } : { ...this.defaults };
+
+            // Ensure fontSize object exists with all properties
+            if (!this.current.fontSize) {
+                this.current.fontSize = { ...this.defaults.fontSize };
+            } else {
+                this.current.fontSize = { ...this.defaults.fontSize, ...this.current.fontSize };
+            }
+
+            this.apply();
+            this.updateUI();
+        },
+
+        cacheElements() {
+            this.elements = {
+                overlay: document.getElementById('settings-modal'),
+                closeBtn: document.getElementById('close-settings'),
+                settingsBtn: document.getElementById('settings-btn'),
+                fontTitles: document.getElementById('font-size-titles'),
+                fontMetadata: document.getElementById('font-size-metadata'),
+                fontCountdown: document.getElementById('font-size-countdown'),
+                themeRadios: document.querySelectorAll('input[name="theme"]')
+            };
+        },
+
+        bindEvents() {
+            // Open settings modal
+            this.elements.settingsBtn.addEventListener('click', () => this.openModal());
+
+            // Close settings modal
+            this.elements.closeBtn.addEventListener('click', () => this.closeModal());
+
+            // Close on overlay click
+            this.elements.overlay.addEventListener('click', (e) => {
+                if (e.target === this.elements.overlay) {
+                    this.closeModal();
+                }
+            });
+
+            // Font size changes - apply immediately
+            this.elements.fontTitles.addEventListener('change', () => this.saveAndApply());
+            this.elements.fontMetadata.addEventListener('change', () => this.saveAndApply());
+            this.elements.fontCountdown.addEventListener('change', () => this.saveAndApply());
+
+            // Theme changes - apply immediately
+            this.elements.themeRadios.forEach(radio => {
+                radio.addEventListener('change', () => this.saveAndApply());
+            });
+        },
+
+        openModal() {
+            this.elements.overlay.classList.remove('hidden');
+        },
+
+        closeModal() {
+            this.elements.overlay.classList.add('hidden');
+        },
+
+        apply() {
+            const root = document.documentElement;
+
+            // Apply theme
+            if (this.current.theme === 'default') {
+                root.removeAttribute('data-theme');
+            } else {
+                root.setAttribute('data-theme', this.current.theme);
+            }
+
+            // Apply font sizes
+            root.setAttribute('data-font-titles', this.current.fontSize.titles);
+            root.setAttribute('data-font-metadata', this.current.fontSize.metadata);
+            root.setAttribute('data-font-countdown', this.current.fontSize.countdown);
+        },
+
+        updateUI() {
+            // Update font size selects
+            this.elements.fontTitles.value = this.current.fontSize.titles;
+            this.elements.fontMetadata.value = this.current.fontSize.metadata;
+            this.elements.fontCountdown.value = this.current.fontSize.countdown;
+
+            // Update theme radio
+            this.elements.themeRadios.forEach(radio => {
+                radio.checked = radio.value === this.current.theme;
+            });
+        },
+
+        async saveAndApply() {
+            // Read current values from UI
+            this.current.fontSize.titles = this.elements.fontTitles.value;
+            this.current.fontSize.metadata = this.elements.fontMetadata.value;
+            this.current.fontSize.countdown = this.elements.fontCountdown.value;
+
+            const selectedTheme = document.querySelector('input[name="theme"]:checked');
+            this.current.theme = selectedTheme ? selectedTheme.value : 'default';
+
+            // Apply changes
+            this.apply();
+
+            // Save to storage
+            await Storage.setSettings(this.current);
+        }
+    };
+
     // ==================== App Module ====================
     const App = {
         async init() {
             console.log('App.init() starting');
+
+            // Initialize settings first (applies theme and font sizes)
+            await Settings.init();
 
             // Initialize modules
             GlobalTimeDisplay.init();
