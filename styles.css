@@ -1,0 +1,113 @@
+@page {
+    size: A4 landscape;
+    margin: 0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 297mm;
+    height: 210mm;
+    overflow: hidden;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: white;
+    padding: 12mm 13mm;
+    display: flex;
+    flex-direction: column;
+}
+
+h1 {
+    font-size: 18pt;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 2mm;
+    color: #1a1a1a;
+}
+
+.subtitle {
+    font-size: 11pt;
+    text-align: center;
+    color: #666;
+    margin-bottom: 6mm;
+}
+
+.calendar {
+    display: flex;
+    flex-direction: column;
+    gap: 4.5mm;
+    flex: 1;
+}
+
+.year-row {
+    display: flex;
+    align-items: center;
+}
+
+.year-label {
+    font-size: 11pt;
+    font-weight: 500;
+    color: #333;
+    width: 22mm;
+    text-align: right;
+    padding-right: 3mm;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.weeks {
+    display: flex;
+    gap: 0.7mm;
+    flex-wrap: nowrap;
+}
+
+.week {
+    width: 4mm;
+    height: 7mm;
+    border: 0.4mm solid #333;
+    border-radius: 0.6mm;
+    flex-shrink: 0;
+}
+
+.week.filled {
+    background: #333;
+}
+
+.footer {
+    margin-top: auto;
+    padding-top: 5mm;
+    text-align: center;
+}
+
+.legend {
+    font-size: 10pt;
+    color: #555;
+}
+
+.stats {
+    margin-top: 2mm;
+    font-size: 10pt;
+    color: #777;
+}
+
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 0;
+    }
+    html, body {
+        width: 297mm;
+        height: 210mm;
+    }
+    body {
+        padding: 10mm 13mm;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
