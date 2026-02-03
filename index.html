@@ -3,198 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>783 Weeks: April 3, 2025 - April 2, 2040</title>
+    <title>Speedrun</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>783 Weeks</h1>
-    <div class="subtitle">April 3, 2025 - April 2, 2040</div>
-
-    <div class="calendar">
-        <div class="year-row">
-            <span class="year-label">2025-26</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div>
+    <!-- Configuration Modal -->
+    <div id="config-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <h2>Configure Countdown</h2>
+            <p>Set your target date to see remaining weeks and track time.</p>
+            <div class="form-group">
+                <label for="timer-title">Title</label>
+                <input type="text" id="timer-title" placeholder="My Countdown">
             </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2026-27</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div>
+            <div class="form-group">
+                <label for="timer-description">Description</label>
+                <input type="text" id="timer-description" placeholder="Time until...">
             </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2027-28</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div>
+            <div class="form-group">
+                <label for="start-date">Start Date</label>
+                <input type="date" id="start-date" required>
             </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2028-29</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div>
+            <div class="form-group">
+                <label for="target-date">Target Date</label>
+                <input type="date" id="target-date" required>
             </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2029-30</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div>
-            </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2030-31</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div>
-            </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2031-32</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div>
-            </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2032-33</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div>
-            </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2033-34</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div>
-            </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2034-35</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div>
-            </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2035-36</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div>
-            </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2036-37</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div>
-            </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2037-38</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div>
-            </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2038-39</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div>
-            </div>
-        </div>
-
-        <div class="year-row">
-            <span class="year-label">2039-40</span>
-            <div class="weeks">
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div><div class="week"></div>
-                <div class="week"></div><div class="week"></div>
+            <div class="modal-actions">
+                <button type="button" id="cancel-config" class="btn btn-secondary hidden">Cancel</button>
+                <button type="button" id="save-config" class="btn btn-primary">Save</button>
             </div>
         </div>
     </div>
 
-    <div class="footer">
-        <div class="legend">Each square = 1 week (Thu-Wed) | Filled = completed</div>
-        <div class="stats">783 weeks total | 15 years | 5,479 days</div>
+    <!-- Settings Button -->
+    <button id="settings-btn" class="settings-btn" title="Settings">&#9881;</button>
+
+    <!-- Logo -->
+    <div id="logo">
+        <!-- Hourglass -->
+        <svg id="hourglass" viewBox="0 0 64 64" width="80" height="80">
+            <!-- Hourglass frame -->
+            <path class="hourglass-frame" d="M12 4 h40 v4 c0 12 -12 16 -16 24 c4 8 16 12 16 24 v4 h-40 v-4 c0 -12 12 -16 16 -24 c-4 -8 -16 -12 -16 -24 v-4 z"
+                  fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Top sand -->
+            <path class="hourglass-sand-top" d="M18 12 c0 8 8 12 14 18 c6 -6 14 -10 14 -18 z" fill="currentColor"/>
+            <!-- Bottom sand -->
+            <path class="hourglass-sand-bottom" d="M18 52 c0 -8 8 -12 14 -18 c6 6 14 10 14 18 z" fill="currentColor"/>
+            <!-- Falling sand stream -->
+            <line class="hourglass-stream" x1="32" y1="30" x2="32" y2="34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </div>
+
+    <!-- Time Counters - Full Width Top Section -->
+    <section id="time-counters">
+        <div class="counter">
+            <span class="counter-label" id="week-label">Week 1</span>
+            <div id="days-grid" class="counter-grid days-grid"></div>
+        </div>
+        <div class="counter">
+            <span class="counter-label" id="date-label">Jan 1</span>
+            <div id="hours-grid" class="counter-grid hours-grid"></div>
+        </div>
+        <div class="counter">
+            <span class="counter-label" id="time-label">00:00</span>
+            <div id="minutes-grid" class="counter-grid minutes-grid"></div>
+        </div>
+        <div class="counter">
+            <span class="counter-label" id="seconds-label">:00</span>
+            <div id="seconds-grid" class="counter-grid seconds-grid"></div>
+        </div>
+    </section>
+
+    <!-- Countdown Container - Centered, Tight -->
+    <div id="countdown-container">
+        <button id="edit-btn" class="edit-btn" title="Edit Timer">&#128295;</button>
+        <header>
+            <h1 id="timer-title-display">-- Weeks</h1>
+            <div id="timer-description-display" class="subtitle"></div>
+            <div id="weeks-count" class="weeks-count"></div>
+            <div id="target-subtitle" class="subtitle">Configure your target date</div>
+        </header>
+
+        <section id="weeks-section">
+            <!-- Year rows will be dynamically generated -->
+        </section>
+
+        <div id="led-countdown">
+            <div class="led-time">
+                <span id="led-weeks">00</span>:<span id="led-days">00</span>:<span id="led-hours">00</span>:<span id="led-minutes">00</span>:<span id="led-seconds">00</span>
+            </div>
+            <div class="led-labels">
+                <span>WW</span><span>DD</span><span>HH</span><span>MM</span><span>SS</span>
+            </div>
+        </div>
+
+        <footer id="footer">
+            <span id="stats"></span>
+        </footer>
     </div>
 
     <script src="script.js"></script>

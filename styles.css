@@ -1,6 +1,14 @@
-@page {
-    size: A4 landscape;
-    margin: 0;
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+
+:root {
+    --bg-color: #0a0a0a;
+    --text-color: #ffffff;
+    --text-muted: #888888;
+    --cell-filled: #ffffff;
+    --cell-empty: transparent;
+    --cell-current: #f4a261;
+    --cell-border: #ffffff;
+    --modal-bg: #1a1a1a;
 }
 
 * {
@@ -10,104 +18,414 @@
 }
 
 html, body {
-    width: 297mm;
-    height: 210mm;
-    overflow: hidden;
+    width: 100%;
+    min-height: 100vh;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Orbitron', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: white;
-    padding: 12mm 13mm;
+    padding: 24px;
     display: flex;
     flex-direction: column;
+    align-items: center;
 }
 
-h1 {
-    font-size: 18pt;
-    font-weight: 600;
-    text-align: center;
-    margin-bottom: 2mm;
-    color: #1a1a1a;
+.hidden {
+    display: none !important;
 }
 
-.subtitle {
-    font-size: 11pt;
-    text-align: center;
-    color: #666;
-    margin-bottom: 6mm;
+/* Settings Button */
+.settings-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: 1px solid var(--cell-border);
+    color: var(--text-muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.2s;
+    z-index: 100;
 }
 
-.calendar {
+.settings-btn:hover {
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
+/* Logo */
+#logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+    margin-bottom: 40px;
+}
+
+.logo-icon {
+    opacity: 0.95;
+}
+
+#hourglass {
+    color: var(--cell-filled);
+    transition: transform 0.3s ease-in-out, color 0.3s ease;
+}
+
+#hourglass.flipped {
+    transform: rotate(180deg);
+    color: var(--cell-current);
+}
+
+.hourglass-frame {
+    opacity: 0.9;
+}
+
+.hourglass-sand-top,
+.hourglass-sand-bottom,
+.hourglass-stream {
+    opacity: 0.7;
+}
+
+/* Time Counters - Full Width Top Section */
+#time-counters {
+    width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 4.5mm;
+    gap: 12px;
+    margin-bottom: 48px;
+}
+
+.counter {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-right: 156px;
+}
+
+.counter-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    min-width: 140px;
+    text-align: right;
+}
+
+.counter-grid {
     flex: 1;
+    display: flex;
+    gap: 2px;
+    justify-content: flex-end;
+}
+
+.counter-grid .time-cell {
+    flex: 1;
+    border: 1px solid var(--cell-border);
+    border-radius: 1px;
+    background: var(--cell-empty);
+}
+
+.counter-grid .time-cell.filled {
+    background: var(--cell-filled);
+    border-color: var(--cell-filled);
+}
+
+.counter-grid .time-cell.current {
+    background: var(--cell-current);
+    border-color: var(--cell-current);
+}
+
+/* Grid-specific heights */
+.days-grid .time-cell {
+    height: 24px;
+    border-width: 2px;
+}
+
+.hours-grid .time-cell {
+    height: 18px;
+    border-width: 1.5px;
+}
+
+.minutes-grid .time-cell {
+    height: 12px;
+    border-width: 1px;
+}
+
+.seconds-grid .time-cell {
+    height: 8px;
+    border-width: 0.5px;
+}
+
+/* Countdown Container - Centered, Tight */
+#countdown-container {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--modal-bg);
+    border-radius: 12px;
+    padding: 24px 32px;
+    max-width: 100%;
+}
+
+#countdown-container header {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+#countdown-container h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+#countdown-container .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Weeks Section */
+#weeks-section {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
 }
 
 .year-row {
     display: flex;
     align-items: center;
+    width: 100%;
 }
 
 .year-label {
-    font-size: 11pt;
-    font-weight: 500;
-    color: #333;
-    width: 22mm;
-    text-align: right;
-    padding-right: 3mm;
+    width: 50px;
+    text-align: left;
+    padding-right: 10px;
+    font-size: 11px;
+    color: var(--text-muted);
     flex-shrink: 0;
-    white-space: nowrap;
 }
 
-.weeks {
+.weeks-grid {
+    flex: 1;
     display: flex;
-    gap: 0.7mm;
-    flex-wrap: nowrap;
+    gap: 2px;
+    justify-content: flex-end;
 }
 
-.week {
-    width: 4mm;
-    height: 7mm;
-    border: 0.4mm solid #333;
-    border-radius: 0.6mm;
+.year-row:last-child .weeks-grid {
+    justify-content: flex-start;
+}
+
+.week-cell {
+    width: 10px;
+    height: 8px;
+    border: 1px solid var(--cell-border);
+    border-radius: 1px;
+    background: var(--cell-empty);
     flex-shrink: 0;
 }
 
-.week.filled {
-    background: #333;
+.week-cell.filled {
+    background: var(--cell-filled);
+    border-color: var(--cell-filled);
 }
 
-.footer {
-    margin-top: auto;
-    padding-top: 5mm;
+.week-cell.current {
+    background: var(--cell-current);
+    border-color: var(--cell-current);
+}
+
+/* Footer */
+#countdown-container footer {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Configuration Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: var(--modal-bg);
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 400px;
+    width: 90%;
+}
+
+.modal h2 {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.modal p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: var(--text-muted);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid var(--cell-border);
+    border-radius: 6px;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--cell-current);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--cell-border);
+    color: var(--text-color);
+}
+
+.btn-secondary:hover {
+    border-color: var(--text-color);
+}
+
+.btn-primary {
+    background: var(--cell-current);
+    border: none;
+    color: #fff;
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+/* Edit Button - Top Right Corner */
+.edit-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: transparent;
+    border: 1px solid var(--cell-border);
+    color: var(--text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.edit-btn:hover {
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
+/* Timer Title and Description in Header */
+#timer-title-display {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+#timer-description-display {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+#timer-description-display:empty {
+    display: none;
+}
+
+.weeks-count {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--cell-current);
+}
+
+.weeks-count:empty {
+    display: none;
+}
+
+/* LED Countdown Display */
+#led-countdown {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.led-time {
+    font-family: 'Orbitron', monospace;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--cell-current);
+}
+
+.led-time span {
+    display: inline-block;
+    min-width: 2ch;
     text-align: center;
 }
 
-.legend {
-    font-size: 10pt;
-    color: #555;
+.led-labels {
+    display: flex;
+    gap: 28px;
+    margin-top: 4px;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
 }
 
-.stats {
-    margin-top: 2mm;
-    font-size: 10pt;
-    color: #777;
-}
-
-@media print {
-    @page {
-        size: A4 landscape;
-        margin: 0;
-    }
-    html, body {
-        width: 297mm;
-        height: 210mm;
-    }
-    body {
-        padding: 10mm 13mm;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
+.led-labels span {
+    min-width: 2ch;
+    text-align: center;
 }
