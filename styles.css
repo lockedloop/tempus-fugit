@@ -181,10 +181,12 @@ body {
     border-width: 0.5px;
 }
 
-/* Timers Grid - 2 column layout, aligned with counter bars */
-.timers-grid {
+/* Timers Grid - configurable column layout, aligned with counter bars */
+.containers-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(var(--grid-columns, 2), 1fr);
+    grid-auto-rows: 200px;
+    grid-auto-flow: dense;
     gap: 40px;
     width: 100%;
     padding-left: 190px;  /* label width (140px) + gap (16px) */
@@ -192,13 +194,13 @@ body {
 }
 
 @media (max-width: 899px) {
-    .timers-grid {
+    .containers-grid {
         grid-template-columns: 1fr;
     }
 }
 
-/* Countdown Container - Class-based for dynamic creation */
-.countdown-container {
+/* Widget Container - Class-based for dynamic creation */
+.container {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -206,20 +208,145 @@ body {
     background: var(--modal-bg);
     border-radius: 12px;
     padding: 24px 32px;
+    cursor: grab;
+    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+    /* Default to 1 row span */
+    grid-row: span 1;
 }
 
-.countdown-container header {
+/* Height size classes using grid-row spans */
+.container[data-height="1"] { grid-row: span 1; }
+.container[data-height="2"] { grid-row: span 2; }
+.container[data-height="3"] { grid-row: span 3; }
+.container[data-height="4"] { grid-row: span 4; }
+.container[data-height="5"] { grid-row: span 5; }
+
+/* Drag-and-drop states */
+.container.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.container.drag-over {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(244, 162, 97, 0.5);
+}
+
+/* Drop position indicators */
+.container.drop-before::before,
+.container.drop-after::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--cell-current);
+    border-radius: 2px;
+}
+
+.container.drop-before::before {
+    top: -22px;
+}
+
+.container.drop-after::after {
+    bottom: -22px;
+}
+
+/* Drag handle button */
+.drag-handle {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: transparent;
+    border: 1px solid var(--cell-border);
+    color: var(--text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: grab;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drag-handle:hover {
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.container.fullscreen .drag-handle {
+    display: none;
+}
+
+/* Height control buttons - right of drag handle */
+.height-controls {
+    position: absolute;
+    top: 12px;
+    left: 44px;
+    display: flex;
+    gap: 4px;
+}
+
+.height-btn {
+    background: transparent;
+    border: 1px solid var(--cell-border);
+    color: var(--text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.height-btn:hover {
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
+.height-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.container.fullscreen .height-controls {
+    display: none;
+}
+
+/* At minimum height, disable collapse button */
+.container[data-height="1"] .height-btn-collapse {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* At maximum height, disable expand button */
+.container[data-height="5"] .height-btn-expand {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.container header {
     text-align: center;
     margin-bottom: 16px;
 }
 
-.countdown-container h2 {
+.container h2 {
     font-size: 24px;
     font-weight: 600;
     margin-bottom: 4px;
 }
 
-.countdown-container .subtitle {
+.container .subtitle {
     font-size: 13px;
     color: var(--text-muted);
 }
@@ -296,7 +423,7 @@ body {
 }
 
 /* Footer */
-.countdown-container .timer-footer {
+.container .timer-footer {
     margin-top: 16px;
     text-align: center;
     font-size: 11px;
@@ -438,20 +565,23 @@ body {
     border-color: var(--text-color);
 }
 
-/* Timer Title and Description in Header */
-.timer-title-display {
+/* Widget Title and Description in Header (legacy aliases) */
+.timer-title-display,
+.widget-title-display {
     font-size: 24px;
     font-weight: 600;
     margin: 0;
 }
 
-.timer-description-display {
+.timer-description-display,
+.widget-description-display {
     font-size: 14px;
     color: var(--text-muted);
     margin-bottom: 8px;
 }
 
-.timer-description-display:empty {
+.timer-description-display:empty,
+.widget-description-display:empty {
     display: none;
 }
 
@@ -551,7 +681,7 @@ body {
 }
 
 /* Fullscreen Mode */
-.countdown-container.fullscreen {
+.container.fullscreen {
     position: fixed;
     top: 0;
     left: 0;
@@ -560,41 +690,42 @@ body {
     z-index: 1000;
     border-radius: 0;
     overflow-y: auto;
-    max-height: none;
+    grid-row: auto !important;
+    min-height: 100vh;
     padding: 48px;
 }
 
 /* Preserve original content width in fullscreen */
-.countdown-container.fullscreen header,
-.countdown-container.fullscreen .weeks-section,
-.countdown-container.fullscreen .led-countdown,
-.countdown-container.fullscreen .timer-footer {
+.container.fullscreen header,
+.container.fullscreen .weeks-section,
+.container.fullscreen .led-countdown,
+.container.fullscreen .timer-footer {
     max-width: 900px;
     width: 100%;
 }
 
 /* Show info text below title in fullscreen */
-.countdown-container.fullscreen .weeks-count,
-.countdown-container.fullscreen .target-subtitle,
-.countdown-container.fullscreen .timer-description-display {
+.container.fullscreen .weeks-count,
+.container.fullscreen .target-subtitle,
+.container.fullscreen .timer-description-display {
     display: block;
 }
 
-.countdown-container.fullscreen .weeks-section {
+.container.fullscreen .weeks-section {
     max-height: none;
 }
 
 
-.countdown-container.fullscreen .close-btn {
+.container.fullscreen .close-btn {
     display: flex;
     position: fixed;
 }
 
-.countdown-container.fullscreen .expand-btn {
+.container.fullscreen .expand-btn {
     display: none;
 }
 
-.countdown-container.fullscreen .edit-btn {
+.container.fullscreen .edit-btn {
     display: none;
 }
 
@@ -606,7 +737,8 @@ body {
 }
 
 /* Hide footer stats */
-.timer-footer {
+.timer-footer,
+.widget-footer {
     display: none;
 }
 
@@ -719,7 +851,165 @@ body {
 }
 
 /* Hide info button in fullscreen */
-.countdown-container.fullscreen .info-btn {
+.container.fullscreen .info-btn {
+    display: none;
+}
+
+/* ==================== Image Widget Styles ==================== */
+.container[data-type="image"] .image-container {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.container[data-type="image"] .widget-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.container[data-type="image"] header {
+    flex-shrink: 0;
+}
+
+/* ==================== Text Widget Styles ==================== */
+.container[data-type="text"] .text-content {
+    flex: 1;
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    line-height: 1.6;
+    text-align: center;
+    overflow-y: auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.container[data-type="text"] .text-content h1 {
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.container[data-type="text"] .text-content h2 {
+    font-size: 1.25em;
+    margin-bottom: 0.5em;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.container[data-type="text"] .text-content a {
+    color: var(--cell-current);
+    text-decoration: none;
+}
+
+.container[data-type="text"] .text-content a:hover {
+    text-decoration: underline;
+}
+
+.container[data-type="text"] header {
+    flex-shrink: 0;
+}
+
+/* Widget footer (display controlled by .timer-footer, .widget-footer rule above) */
+.widget-footer {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* ==================== Type Selector Styles ==================== */
+.type-selector {
+    margin-bottom: 20px;
+}
+
+.type-options {
+    display: flex;
+    gap: 8px;
+}
+
+.type-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--cell-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.type-option:hover {
+    border-color: var(--text-muted);
+}
+
+.type-option input[type="radio"] {
+    accent-color: var(--cell-current);
+    cursor: pointer;
+}
+
+.type-option input[type="radio"]:checked + span {
+    color: var(--cell-current);
+}
+
+/* Type-specific form fields */
+#countdown-fields,
+#image-fields,
+#text-fields {
+    transition: opacity 0.2s;
+}
+
+#text-content {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    border: 1px solid var(--cell-border);
+    border-radius: 6px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    resize: vertical;
+}
+
+#text-content:focus {
+    outline: none;
+    border-color: var(--cell-current);
+}
+
+.file-upload-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.file-upload-group input[type="text"] {
+    flex: 1;
+}
+
+.file-upload-label {
+    padding: 12px 16px;
+    font-size: 14px;
+    border: 1px solid var(--cell-border);
+    border-radius: 6px;
+    background: var(--bg-color);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.file-upload-label:hover {
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
+#image-file {
     display: none;
 }
 
@@ -765,12 +1055,14 @@ body {
 
 /* Small font sizes */
 [data-font-titles="small"] .timer-title-display,
-[data-font-titles="small"] .countdown-container h2 {
+[data-font-titles="small"] .widget-title-display,
+[data-font-titles="small"] .container h2 {
     font-size: 20px;
 }
 
 [data-font-metadata="small"] .year-label,
 [data-font-metadata="small"] .timer-footer,
+[data-font-metadata="small"] .widget-footer,
 [data-font-metadata="small"] .subtitle {
     font-size: 10px;
 }
@@ -783,12 +1075,14 @@ body {
 
 /* Large font sizes */
 [data-font-titles="large"] .timer-title-display,
-[data-font-titles="large"] .countdown-container h2 {
+[data-font-titles="large"] .widget-title-display,
+[data-font-titles="large"] .container h2 {
     font-size: 28px;
 }
 
 [data-font-metadata="large"] .year-label,
 [data-font-metadata="large"] .timer-footer,
+[data-font-metadata="large"] .widget-footer,
 [data-font-metadata="large"] .subtitle {
     font-size: 14px;
 }

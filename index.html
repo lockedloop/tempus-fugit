@@ -10,29 +10,75 @@
     <!-- Configuration Modal -->
     <div id="config-modal" class="modal-overlay hidden">
         <div class="modal">
-            <h2>Configure Countdown</h2>
-            <p>Set your target date to see remaining weeks and track time.</p>
+            <h2>Create Container</h2>
+            <p>Choose a container type and configure it.</p>
+
+            <!-- Type Selector -->
+            <div class="form-group type-selector">
+                <label>Container Type</label>
+                <div class="type-options">
+                    <label class="type-option">
+                        <input type="radio" name="container-type" value="countdown" checked>
+                        <span>Countdown</span>
+                    </label>
+                    <label class="type-option">
+                        <input type="radio" name="container-type" value="image">
+                        <span>Image</span>
+                    </label>
+                    <label class="type-option">
+                        <input type="radio" name="container-type" value="text">
+                        <span>Text</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Common Fields -->
             <div class="form-group">
-                <label for="timer-title">Title</label>
-                <input type="text" id="timer-title" placeholder="My Countdown">
+                <label for="container-title">Title</label>
+                <input type="text" id="container-title" placeholder="My Container">
             </div>
             <div class="form-group">
-                <label for="timer-description">Description</label>
-                <input type="text" id="timer-description" placeholder="Time until...">
+                <label for="container-description">Description</label>
+                <input type="text" id="container-description" placeholder="Optional description...">
             </div>
-            <div class="form-group">
-                <label for="start-date">Start Date</label>
-                <input type="date" id="start-date" required>
+
+            <!-- Countdown-specific Fields -->
+            <div id="countdown-fields">
+                <div class="form-group">
+                    <label for="start-date">Start Date</label>
+                    <input type="date" id="start-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="target-date">Target Date</label>
+                    <input type="date" id="target-date" required>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="target-date">Target Date</label>
-                <input type="date" id="target-date" required>
+
+            <!-- Image-specific Fields -->
+            <div id="image-fields" class="hidden">
+                <div class="form-group">
+                    <label for="image-url">Image URL</label>
+                    <div class="file-upload-group">
+                        <input type="text" id="image-url" placeholder="https://example.com/image.jpg">
+                        <label class="file-upload-label" for="image-file">Upload</label>
+                        <input type="file" id="image-file" accept="image/*">
+                    </div>
+                </div>
             </div>
+
+            <!-- Text-specific Fields -->
+            <div id="text-fields" class="hidden">
+                <div class="form-group">
+                    <label for="text-content">Content (Markdown supported)</label>
+                    <textarea id="text-content" placeholder="Enter your text here...&#10;&#10;Supports **bold**, *italic*, [links](url), and # headers"></textarea>
+                </div>
+            </div>
+
             <div class="modal-actions">
-                <button type="button" id="delete-timer" class="btn btn-danger hidden">Delete</button>
+                <button type="button" id="delete-container" class="btn btn-danger hidden">Delete</button>
                 <div class="modal-actions-right">
                     <button type="button" id="cancel-config" class="btn btn-secondary hidden">Cancel</button>
-                    <button type="button" id="save-config" class="btn btn-primary">Save</button>
+                    <button type="button" id="save-config" class="btn btn-primary">Create</button>
                 </div>
             </div>
         </div>
@@ -40,7 +86,7 @@
 
     <!-- Action Buttons (right-center of screen) -->
     <div class="action-buttons">
-        <button id="add-timer-btn" class="action-btn" title="Add Timer">+</button>
+        <button id="add-container-btn" class="action-btn" title="Add Container">+</button>
         <button id="settings-btn" class="action-btn" title="Settings">&#x2699;</button>
     </div>
 
@@ -74,6 +120,17 @@
                         <option value="small">Small (16px)</option>
                         <option value="medium" selected>Medium (20px)</option>
                         <option value="large">Large (24px)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Layout</h3>
+                <div class="form-group">
+                    <label for="grid-columns">Grid Columns</label>
+                    <select id="grid-columns" class="settings-select">
+                        <option value="2">2 Columns</option>
+                        <option value="3">3 Columns</option>
                     </select>
                 </div>
             </div>
@@ -146,9 +203,9 @@
         </div>
     </section>
 
-    <!-- Timers Grid Container -->
-    <div id="timers-grid" class="timers-grid">
-        <!-- Timer containers will be dynamically generated -->
+    <!-- Containers Grid -->
+    <div id="containers-grid" class="containers-grid">
+        <!-- Container elements will be dynamically generated -->
     </div>
 
     <script src="script.js"></script>
