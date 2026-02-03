@@ -41,26 +41,17 @@
                     <label for="target-date">Target Date</label>
                     <input type="date" id="target-date" required>
                 </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="show-todos" checked>
+                        <span>Show Task List</span>
+                    </label>
+                </div>
             </div>
 
             <!-- Image Fields -->
             <div id="image-fields" class="hidden">
                 <div class="form-group">
-                    <label>Image Source</label>
-                    <div class="image-source-tabs">
-                        <button type="button" class="source-tab active" data-source="upload">Upload File</button>
-                        <button type="button" class="source-tab" data-source="url">URL</button>
-                    </div>
-                </div>
-                <div class="form-group image-upload-group">
-                    <label for="image-file">Choose Image (JPG, PNG, SVG)</label>
-                    <input type="file" id="image-file" accept="image/jpeg,image/png,image/svg+xml,.jpg,.jpeg,.png,.svg">
-                    <div id="image-preview" class="image-preview hidden">
-                        <img src="" alt="Preview">
-                        <button type="button" id="clear-image" class="clear-image-btn">&times;</button>
-                    </div>
-                </div>
-                <div class="form-group image-url-group hidden">
                     <label for="image-url">Image URL</label>
                     <input type="url" id="image-url" placeholder="https://example.com/image.jpg">
                 </div>
@@ -250,7 +241,7 @@
 
         <!-- Hourglass -->
         <div id="logo">
-            <svg id="hourglass" viewBox="0 0 64 64" width="75" height="75">
+            <svg id="hourglass" viewBox="0 0 64 64" width="56" height="56">
                 <!-- Hourglass frame -->
                 <path class="hourglass-frame" d="M12 4 h40 v4 c0 12 -12 16 -16 24 c4 8 16 12 16 24 v4 h-40 v-4 c0 -12 12 -16 16 -24 c-4 -8 -16 -12 -16 -24 v-4 z"
                       fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>

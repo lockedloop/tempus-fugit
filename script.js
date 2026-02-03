@@ -98,7 +98,13 @@
 
         async set(containers) {
             const data = JSON.stringify(containers);
-            localStorage.setItem(this.KEY_CONTAINERS, data);
+
+            try {
+                localStorage.setItem(this.KEY_CONTAINERS, data);
+            } catch (e) {
+                console.error('localStorage quota exceeded or unavailable:', e);
+                throw new Error('Failed to save data. Storage quota may be exceeded.');
+            }
 
             if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
                 try {
@@ -607,6 +613,7 @@
 
         constructor(id, data, containerElement) {
             super(id, data, containerElement);
+            this.isFullscreenMode = false;
             this.initCountdownData();
         }
 
@@ -622,6 +629,9 @@
                 typeData.todos = [];
             }
             this.todos = typeData.todos;
+
+            // Read showTodos flag (default true for backward compatibility)
+            this.showTodos = typeData.showTodos !== false;
 
             // Check if countdown is short-term (< 7 days)
             const now = new Date();
@@ -658,6 +668,7 @@
                         <span class="led-days">0000</span>D : <span class="led-hours">00</span>H : <span class="led-minutes">00</span>M : <span class="led-seconds">00</span>S
                     </div>
                     <div class="progress-bar"><div class="progress-fill"></div></div>
+                    <span class="progress-percent">0%</span>
                 </div>
                 <footer class="container-footer"><span class="stats"></span></footer>
             `;
@@ -672,6 +683,7 @@
             this.elements.ledMinutes = this.container.querySelector('.led-minutes');
             this.elements.ledSeconds = this.container.querySelector('.led-seconds');
             this.elements.progressFill = this.container.querySelector('.progress-fill');
+            this.elements.progressPercent = this.container.querySelector('.progress-percent');
             this.elements.stats = this.container.querySelector('.stats');
 
             // Todo elements
@@ -693,6 +705,9 @@
 
             // Apply short-term visibility
             this.updateWeeksSectionVisibility();
+
+            // Apply todo section visibility
+            this.updateTodoSectionVisibility();
         }
 
         updateHeader() {
@@ -720,9 +735,14 @@
             const elapsedWeeks = TimeCalc.getElapsedWeeks(this.startDate, now);
             const remaining = TimeCalc.getRemainingTime(this.targetDate, now);
 
-            // Only generate weeks grid if not short-term
+            // Generate appropriate weeks grid
             if (!this.isShortTerm) {
-                this.generateWeeksGrid(elapsedWeeks);
+                if (this.isFullscreenMode) {
+                    this.generateFullscreenWeeksGrid(elapsedWeeks);
+                } else {
+                    this.elements.weeksSection.classList.remove('fullscreen-grid');
+                    this.generateWeeksGrid(elapsedWeeks);
+                }
             }
             this.updateLedCountdown(remaining);
             this.updateStats(elapsedWeeks);
@@ -743,6 +763,47 @@
                     this.elements.weeksSection.classList.remove('hidden');
                 }
             }
+        }
+
+        updateTodoSectionVisibility() {
+            if (this.elements.todoSection) {
+                this.elements.todoSection.classList.toggle('hidden', !this.showTodos);
+            }
+        }
+
+        enterFullscreen() {
+            super.enterFullscreen();
+            this.isFullscreenMode = true;
+            this.update(new Date());
+        }
+
+        exitFullscreen() {
+            super.exitFullscreen();
+            this.isFullscreenMode = false;
+            this.update(new Date());
+        }
+
+        generateFullscreenWeeksGrid(elapsedWeeks) {
+            this.elements.weeksSection.innerHTML = '';
+            this.elements.weeksSection.classList.add('fullscreen-grid');
+
+            const grid = document.createElement('div');
+            grid.className = 'weeks-grid-landscape';
+
+            for (let i = 0; i < this.totalWeeks; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'week-cell';
+
+                if (i < elapsedWeeks) {
+                    cell.classList.add('filled');
+                } else if (i === elapsedWeeks) {
+                    cell.classList.add('current');
+                }
+
+                grid.appendChild(cell);
+            }
+
+            this.elements.weeksSection.appendChild(grid);
         }
 
         generateWeeksGrid(elapsedWeeks) {
@@ -810,6 +871,9 @@
             const elapsed = Date.now() - this.startDate;
             const percent = Math.min(100, Math.max(0, (elapsed / total) * 100));
             this.elements.progressFill.style.width = `${percent}%`;
+            if (this.elements.progressPercent) {
+                this.elements.progressPercent.textContent = `${Math.round(percent)}%`;
+            }
         }
 
         // ==================== TODO List Methods ====================
@@ -896,6 +960,7 @@
         onDataUpdated() {
             this.initCountdownData();
             this.updateWeeksSectionVisibility();
+            this.updateTodoSectionVisibility();
             this.renderTodos();
             this.update(new Date());
         }
@@ -1201,15 +1266,9 @@
                 countdownFields: document.getElementById('countdown-fields'),
                 startDateInput: document.getElementById('start-date'),
                 targetDateInput: document.getElementById('target-date'),
+                showTodosCheckbox: document.getElementById('show-todos'),
                 // Image fields
                 imageFields: document.getElementById('image-fields'),
-                imageSourceTabs: document.querySelectorAll('.source-tab'),
-                imageUploadGroup: document.querySelector('.image-upload-group'),
-                imageUrlGroup: document.querySelector('.image-url-group'),
-                imageFileInput: document.getElementById('image-file'),
-                imagePreview: document.getElementById('image-preview'),
-                imagePreviewImg: document.querySelector('#image-preview img'),
-                clearImageBtn: document.getElementById('clear-image'),
                 imageUrlInput: document.getElementById('image-url'),
                 imageFitSelect: document.getElementById('image-fit'),
                 // Text fields
@@ -1222,10 +1281,6 @@
                 cancelBtn: document.getElementById('cancel-config'),
                 deleteBtn: document.getElementById('delete-container')
             };
-
-            // Track image source mode and data
-            this.imageSourceMode = 'upload';
-            this.imageDataUrl = null;
 
             this.bindEvents();
         },
@@ -1241,100 +1296,6 @@
                     this.containerType = this.elements.typeSelector.value;
                     this.showFieldsForType(this.containerType);
                 });
-            }
-
-            // Image source tabs
-            if (this.elements.imageSourceTabs) {
-                this.elements.imageSourceTabs.forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        this.switchImageSource(tab.dataset.source);
-                    });
-                });
-            }
-
-            // Image file input
-            if (this.elements.imageFileInput) {
-                this.elements.imageFileInput.addEventListener('change', (e) => {
-                    this.handleImageFileSelect(e);
-                });
-            }
-
-            // Clear image button
-            if (this.elements.clearImageBtn) {
-                this.elements.clearImageBtn.addEventListener('click', () => {
-                    this.clearImagePreview();
-                });
-            }
-        },
-
-        switchImageSource(source) {
-            this.imageSourceMode = source;
-
-            // Update tab active states
-            this.elements.imageSourceTabs.forEach(tab => {
-                tab.classList.toggle('active', tab.dataset.source === source);
-            });
-
-            // Show/hide appropriate input groups
-            if (source === 'upload') {
-                this.elements.imageUploadGroup?.classList.remove('hidden');
-                this.elements.imageUrlGroup?.classList.add('hidden');
-            } else {
-                this.elements.imageUploadGroup?.classList.add('hidden');
-                this.elements.imageUrlGroup?.classList.remove('hidden');
-            }
-        },
-
-        handleImageFileSelect(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // Validate file type
-            const validTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
-            if (!validTypes.includes(file.type)) {
-                alert('Please select a valid image file (JPG, PNG, or SVG).');
-                this.elements.imageFileInput.value = '';
-                return;
-            }
-
-            // Check file size (max 5MB for localStorage compatibility)
-            const maxSize = 5 * 1024 * 1024;
-            if (file.size > maxSize) {
-                alert('Image file is too large. Please select an image under 5MB.');
-                this.elements.imageFileInput.value = '';
-                return;
-            }
-
-            // Read file as data URL
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                this.imageDataUrl = event.target.result;
-                this.showImagePreview(this.imageDataUrl);
-            };
-            reader.onerror = () => {
-                alert('Failed to read image file.');
-                this.elements.imageFileInput.value = '';
-            };
-            reader.readAsDataURL(file);
-        },
-
-        showImagePreview(src) {
-            if (this.elements.imagePreviewImg && this.elements.imagePreview) {
-                this.elements.imagePreviewImg.src = src;
-                this.elements.imagePreview.classList.remove('hidden');
-            }
-        },
-
-        clearImagePreview() {
-            this.imageDataUrl = null;
-            if (this.elements.imageFileInput) {
-                this.elements.imageFileInput.value = '';
-            }
-            if (this.elements.imagePreview) {
-                this.elements.imagePreview.classList.add('hidden');
-            }
-            if (this.elements.imagePreviewImg) {
-                this.elements.imagePreviewImg.src = '';
             }
         },
 
@@ -1390,12 +1351,11 @@
             if (this.elements.targetDateInput) {
                 this.elements.targetDateInput.value = this.formatInputDate(oneYearFromNow);
             }
+            if (this.elements.showTodosCheckbox) {
+                this.elements.showTodosCheckbox.checked = true;
+            }
 
             // Image defaults
-            this.imageSourceMode = 'upload';
-            this.imageDataUrl = null;
-            this.switchImageSource('upload');
-            this.clearImagePreview();
             if (this.elements.imageUrlInput) this.elements.imageUrlInput.value = '';
             if (this.elements.imageFitSelect) this.elements.imageFitSelect.value = 'cover';
 
@@ -1445,26 +1405,14 @@
                     if (this.elements.targetDateInput) {
                         this.elements.targetDateInput.value = typeData.targetDate || '';
                     }
+                    if (this.elements.showTodosCheckbox) {
+                        this.elements.showTodosCheckbox.checked = typeData.showTodos !== false;
+                    }
                     break;
                 case 'image':
                     const imageUrl = typeData.imageUrl || '';
-                    // Check if it's a data URL (local upload) or external URL
-                    if (imageUrl.startsWith('data:')) {
-                        this.imageSourceMode = 'upload';
-                        this.imageDataUrl = imageUrl;
-                        this.switchImageSource('upload');
-                        this.showImagePreview(imageUrl);
-                        if (this.elements.imageUrlInput) {
-                            this.elements.imageUrlInput.value = '';
-                        }
-                    } else {
-                        this.imageSourceMode = 'url';
-                        this.imageDataUrl = null;
-                        this.switchImageSource('url');
-                        this.clearImagePreview();
-                        if (this.elements.imageUrlInput) {
-                            this.elements.imageUrlInput.value = imageUrl;
-                        }
+                    if (this.elements.imageUrlInput) {
+                        this.elements.imageUrlInput.value = imageUrl;
                     }
                     if (this.elements.imageFitSelect) {
                         this.elements.imageFitSelect.value = typeData.fit || 'cover';
@@ -1529,19 +1477,22 @@
 
                     typeData = {
                         startDate: startValue,
-                        targetDate: targetValue
+                        targetDate: targetValue,
+                        showTodos: this.elements.showTodosCheckbox?.checked !== false
                     };
+
+                    // Preserve existing todos when editing
+                    if (this.mode === 'edit' && this.editingContainerId) {
+                        const container = ContainerManager.containers.get(this.editingContainerId);
+                        if (container && container.data.data && container.data.data.todos) {
+                            typeData.todos = container.data.data.todos;
+                        }
+                    }
                     break;
 
                 case 'image':
-                    let imageUrl = '';
-                    if (this.imageSourceMode === 'upload' && this.imageDataUrl) {
-                        imageUrl = this.imageDataUrl;
-                    } else if (this.imageSourceMode === 'url') {
-                        imageUrl = this.elements.imageUrlInput?.value || '';
-                    }
                     typeData = {
-                        imageUrl: imageUrl,
+                        imageUrl: this.elements.imageUrlInput?.value || '',
                         fit: this.elements.imageFitSelect?.value || 'cover'
                     };
                     break;

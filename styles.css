@@ -581,6 +581,20 @@ body {
     border-color: var(--cell-current);
 }
 
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--cell-current);
+    cursor: pointer;
+}
+
 .modal-actions {
     display: flex;
     gap: 12px;
@@ -727,6 +741,14 @@ body {
     transition: width 0.3s ease;
 }
 
+.progress-percent {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--cell-current);
+    min-width: 40px;
+    text-align: right;
+}
+
 /* Expand Button */
 .expand-btn {
     position: absolute;
@@ -861,6 +883,33 @@ body {
 
 .container.fullscreen .weeks-section {
     max-height: none;
+}
+
+/* Fullscreen landscape weeks grid */
+.container.fullscreen .weeks-section.fullscreen-grid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 32px;
+    overflow: visible;
+}
+
+.weeks-grid-landscape {
+    display: grid;
+    /* ~80 columns gives larger cells while fitting 80 years in ~52 rows */
+    grid-template-columns: repeat(80, 1fr);
+    gap: 2px;
+    width: 100%;
+    max-width: 1400px;
+}
+
+.weeks-grid-landscape .week-cell {
+    aspect-ratio: 1;
+    min-width: 6px;
+    min-height: 6px;
+    height: auto;
+    border-width: 1px;
 }
 
 .container.fullscreen .close-btn {
