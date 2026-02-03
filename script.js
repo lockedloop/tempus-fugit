@@ -616,6 +616,18 @@
             this.targetDate = TimeCalc.parseDate(typeData.targetDate);
             this.totalWeeks = TimeCalc.getWeeksBetween(this.startDate, this.targetDate);
             this.yearRanges = TimeCalc.getYearRanges(this.startDate, this.targetDate);
+
+            // Initialize todos array if not present
+            if (!typeData.todos) {
+                typeData.todos = [];
+            }
+            this.todos = typeData.todos;
+
+            // Check if countdown is short-term (< 7 days)
+            const now = new Date();
+            const diffMs = this.targetDate - now;
+            const diffDays = diffMs / (1000 * 60 * 60 * 24);
+            this.isShortTerm = diffDays < 7 && diffDays > 0;
         }
 
         init() {
@@ -634,6 +646,13 @@
                     <div class="target-subtitle subtitle">Configure your target date</div>
                 </div>
                 <section class="weeks-section"></section>
+                <section class="todo-section">
+                    <div class="todo-list"></div>
+                    <div class="todo-input-row">
+                        <input type="text" class="todo-input" placeholder="Add task...">
+                        <button class="todo-add-btn">+</button>
+                    </div>
+                </section>
                 <div class="led-countdown">
                     <div class="led-time">
                         <span class="led-days">0000</span>D : <span class="led-hours">00</span>H : <span class="led-minutes">00</span>M : <span class="led-seconds">00</span>S
@@ -654,6 +673,26 @@
             this.elements.ledSeconds = this.container.querySelector('.led-seconds');
             this.elements.progressFill = this.container.querySelector('.progress-fill');
             this.elements.stats = this.container.querySelector('.stats');
+
+            // Todo elements
+            this.elements.todoSection = this.container.querySelector('.todo-section');
+            this.elements.todoList = this.container.querySelector('.todo-list');
+            this.elements.todoInput = this.container.querySelector('.todo-input');
+            this.elements.todoAddBtn = this.container.querySelector('.todo-add-btn');
+
+            // Bind todo events
+            this.elements.todoAddBtn.addEventListener('click', () => this.addTodoFromInput());
+            this.elements.todoInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.addTodoFromInput();
+                }
+            });
+
+            // Render existing todos
+            this.renderTodos();
+
+            // Apply short-term visibility
+            this.updateWeeksSectionVisibility();
         }
 
         updateHeader() {
@@ -681,7 +720,10 @@
             const elapsedWeeks = TimeCalc.getElapsedWeeks(this.startDate, now);
             const remaining = TimeCalc.getRemainingTime(this.targetDate, now);
 
-            this.generateWeeksGrid(elapsedWeeks);
+            // Only generate weeks grid if not short-term
+            if (!this.isShortTerm) {
+                this.generateWeeksGrid(elapsedWeeks);
+            }
             this.updateLedCountdown(remaining);
             this.updateStats(elapsedWeeks);
 
@@ -690,6 +732,16 @@
             if (currentSecond === 0 || this.lastProgressUpdate === undefined) {
                 this.updateProgress();
                 this.lastProgressUpdate = now.getMinutes();
+            }
+        }
+
+        updateWeeksSectionVisibility() {
+            if (this.elements.weeksSection) {
+                if (this.isShortTerm) {
+                    this.elements.weeksSection.classList.add('hidden');
+                } else {
+                    this.elements.weeksSection.classList.remove('hidden');
+                }
             }
         }
 
@@ -760,8 +812,91 @@
             this.elements.progressFill.style.width = `${percent}%`;
         }
 
+        // ==================== TODO List Methods ====================
+
+        renderTodos() {
+            this.elements.todoList.innerHTML = '';
+
+            for (const todo of this.todos) {
+                const todoItem = document.createElement('div');
+                todoItem.className = 'todo-item' + (todo.completed ? ' completed' : '');
+                todoItem.dataset.todoId = todo.id;
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'todo-checkbox';
+                checkbox.checked = todo.completed;
+                checkbox.addEventListener('change', () => this.toggleTodo(todo.id));
+
+                const text = document.createElement('span');
+                text.className = 'todo-text';
+                text.textContent = todo.text;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'todo-remove-btn';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.title = 'Remove task';
+                removeBtn.addEventListener('click', () => this.removeTodo(todo.id));
+
+                todoItem.appendChild(checkbox);
+                todoItem.appendChild(text);
+                todoItem.appendChild(removeBtn);
+                this.elements.todoList.appendChild(todoItem);
+            }
+        }
+
+        addTodoFromInput() {
+            const text = this.elements.todoInput.value.trim();
+            if (text) {
+                this.addTodo(text);
+                this.elements.todoInput.value = '';
+            }
+        }
+
+        addTodo(text) {
+            const todo = {
+                id: `todo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                text: text,
+                completed: false
+            };
+            this.todos.push(todo);
+            this.saveTodos();
+            this.renderTodos();
+        }
+
+        toggleTodo(id) {
+            const todo = this.todos.find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                this.saveTodos();
+                this.renderTodos();
+            }
+        }
+
+        removeTodo(id) {
+            const index = this.todos.findIndex(t => t.id === id);
+            if (index !== -1) {
+                this.todos.splice(index, 1);
+                this.saveTodos();
+                this.renderTodos();
+            }
+        }
+
+        async saveTodos() {
+            // Update the data object with current todos
+            if (!this.data.data) {
+                this.data.data = {};
+            }
+            this.data.data.todos = this.todos;
+
+            // Persist to storage
+            await Storage.updateContainer(this.id, { data: this.data.data });
+        }
+
         onDataUpdated() {
             this.initCountdownData();
+            this.updateWeeksSectionVisibility();
+            this.renderTodos();
             this.update(new Date());
         }
     }
@@ -1068,6 +1203,13 @@
                 targetDateInput: document.getElementById('target-date'),
                 // Image fields
                 imageFields: document.getElementById('image-fields'),
+                imageSourceTabs: document.querySelectorAll('.source-tab'),
+                imageUploadGroup: document.querySelector('.image-upload-group'),
+                imageUrlGroup: document.querySelector('.image-url-group'),
+                imageFileInput: document.getElementById('image-file'),
+                imagePreview: document.getElementById('image-preview'),
+                imagePreviewImg: document.querySelector('#image-preview img'),
+                clearImageBtn: document.getElementById('clear-image'),
                 imageUrlInput: document.getElementById('image-url'),
                 imageFitSelect: document.getElementById('image-fit'),
                 // Text fields
@@ -1080,6 +1222,10 @@
                 cancelBtn: document.getElementById('cancel-config'),
                 deleteBtn: document.getElementById('delete-container')
             };
+
+            // Track image source mode and data
+            this.imageSourceMode = 'upload';
+            this.imageDataUrl = null;
 
             this.bindEvents();
         },
@@ -1095,6 +1241,100 @@
                     this.containerType = this.elements.typeSelector.value;
                     this.showFieldsForType(this.containerType);
                 });
+            }
+
+            // Image source tabs
+            if (this.elements.imageSourceTabs) {
+                this.elements.imageSourceTabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        this.switchImageSource(tab.dataset.source);
+                    });
+                });
+            }
+
+            // Image file input
+            if (this.elements.imageFileInput) {
+                this.elements.imageFileInput.addEventListener('change', (e) => {
+                    this.handleImageFileSelect(e);
+                });
+            }
+
+            // Clear image button
+            if (this.elements.clearImageBtn) {
+                this.elements.clearImageBtn.addEventListener('click', () => {
+                    this.clearImagePreview();
+                });
+            }
+        },
+
+        switchImageSource(source) {
+            this.imageSourceMode = source;
+
+            // Update tab active states
+            this.elements.imageSourceTabs.forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.source === source);
+            });
+
+            // Show/hide appropriate input groups
+            if (source === 'upload') {
+                this.elements.imageUploadGroup?.classList.remove('hidden');
+                this.elements.imageUrlGroup?.classList.add('hidden');
+            } else {
+                this.elements.imageUploadGroup?.classList.add('hidden');
+                this.elements.imageUrlGroup?.classList.remove('hidden');
+            }
+        },
+
+        handleImageFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
+            if (!validTypes.includes(file.type)) {
+                alert('Please select a valid image file (JPG, PNG, or SVG).');
+                this.elements.imageFileInput.value = '';
+                return;
+            }
+
+            // Check file size (max 5MB for localStorage compatibility)
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('Image file is too large. Please select an image under 5MB.');
+                this.elements.imageFileInput.value = '';
+                return;
+            }
+
+            // Read file as data URL
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                this.imageDataUrl = event.target.result;
+                this.showImagePreview(this.imageDataUrl);
+            };
+            reader.onerror = () => {
+                alert('Failed to read image file.');
+                this.elements.imageFileInput.value = '';
+            };
+            reader.readAsDataURL(file);
+        },
+
+        showImagePreview(src) {
+            if (this.elements.imagePreviewImg && this.elements.imagePreview) {
+                this.elements.imagePreviewImg.src = src;
+                this.elements.imagePreview.classList.remove('hidden');
+            }
+        },
+
+        clearImagePreview() {
+            this.imageDataUrl = null;
+            if (this.elements.imageFileInput) {
+                this.elements.imageFileInput.value = '';
+            }
+            if (this.elements.imagePreview) {
+                this.elements.imagePreview.classList.add('hidden');
+            }
+            if (this.elements.imagePreviewImg) {
+                this.elements.imagePreviewImg.src = '';
             }
         },
 
@@ -1152,6 +1392,10 @@
             }
 
             // Image defaults
+            this.imageSourceMode = 'upload';
+            this.imageDataUrl = null;
+            this.switchImageSource('upload');
+            this.clearImagePreview();
             if (this.elements.imageUrlInput) this.elements.imageUrlInput.value = '';
             if (this.elements.imageFitSelect) this.elements.imageFitSelect.value = 'cover';
 
@@ -1203,8 +1447,24 @@
                     }
                     break;
                 case 'image':
-                    if (this.elements.imageUrlInput) {
-                        this.elements.imageUrlInput.value = typeData.imageUrl || '';
+                    const imageUrl = typeData.imageUrl || '';
+                    // Check if it's a data URL (local upload) or external URL
+                    if (imageUrl.startsWith('data:')) {
+                        this.imageSourceMode = 'upload';
+                        this.imageDataUrl = imageUrl;
+                        this.switchImageSource('upload');
+                        this.showImagePreview(imageUrl);
+                        if (this.elements.imageUrlInput) {
+                            this.elements.imageUrlInput.value = '';
+                        }
+                    } else {
+                        this.imageSourceMode = 'url';
+                        this.imageDataUrl = null;
+                        this.switchImageSource('url');
+                        this.clearImagePreview();
+                        if (this.elements.imageUrlInput) {
+                            this.elements.imageUrlInput.value = imageUrl;
+                        }
                     }
                     if (this.elements.imageFitSelect) {
                         this.elements.imageFitSelect.value = typeData.fit || 'cover';
@@ -1274,8 +1534,14 @@
                     break;
 
                 case 'image':
+                    let imageUrl = '';
+                    if (this.imageSourceMode === 'upload' && this.imageDataUrl) {
+                        imageUrl = this.imageDataUrl;
+                    } else if (this.imageSourceMode === 'url') {
+                        imageUrl = this.elements.imageUrlInput?.value || '';
+                    }
                     typeData = {
-                        imageUrl: this.elements.imageUrlInput?.value || '',
+                        imageUrl: imageUrl,
                         fit: this.elements.imageFitSelect?.value || 'cover'
                     };
                     break;

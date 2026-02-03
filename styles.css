@@ -370,6 +370,140 @@ body {
     border-color: var(--cell-current);
 }
 
+/* Todo Section (Countdown) */
+.todo-section {
+    width: 100%;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--cell-border);
+    flex-shrink: 0;
+}
+
+.todo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 120px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) transparent;
+}
+
+.todo-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.todo-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.todo-list::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 2px;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.todo-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.todo-item.completed .todo-text {
+    text-decoration: line-through;
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.todo-checkbox {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--cell-current);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.todo-text {
+    flex: 1;
+    color: var(--text-color);
+    word-break: break-word;
+}
+
+.todo-remove-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s;
+}
+
+.todo-item:hover .todo-remove-btn {
+    opacity: 1;
+}
+
+.todo-remove-btn:hover {
+    color: var(--danger-color);
+}
+
+.todo-input-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.todo-input {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 12px;
+    border: 1px solid var(--cell-border);
+    border-radius: 4px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: inherit;
+}
+
+.todo-input:focus {
+    outline: none;
+    border-color: var(--cell-current);
+}
+
+.todo-input::placeholder {
+    color: var(--text-muted);
+}
+
+.todo-add-btn {
+    background: transparent;
+    border: 1px solid var(--cell-border);
+    color: var(--text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.todo-add-btn:hover {
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
 /* Footer */
 .container .container-footer {
     margin-top: 16px;
@@ -917,76 +1051,88 @@ body {
 
 /* ==================== Theme Variations ==================== */
 
-/* Phosphor & Void (Retro-Future Amber) */
-[data-theme="phosphor"] {
-    --bg-color: #101010;
-    --text-color: #F8F8F2;
-    --text-muted: #888888;
-    --cell-filled: #FFB86C;
+/* Catppuccin Mocha */
+[data-theme="catppuccin"] {
+    --bg-color: #1e1e2e;
+    --text-color: #cdd6f4;
+    --text-muted: #a6adc8;
+    --cell-filled: #cba6f7;
     --cell-empty: transparent;
-    --cell-current: #FF5555;
-    --cell-border: #44475A;
-    --modal-bg: #1a1a1a;
+    --cell-current: #f5c2e7;
+    --cell-border: #45475a;
+    --modal-bg: #313244;
 }
 
-/* Cryo-Stasis (Cold Cyan) */
-[data-theme="cryo"] {
-    --bg-color: #0B1015;
-    --text-color: #D8DEE9;
-    --text-muted: #6272A4;
-    --cell-filled: #8BE9FD;
+/* Gruvbox Dark */
+[data-theme="gruvbox"] {
+    --bg-color: #1d2021;
+    --text-color: #ebdbb2;
+    --text-muted: #a89984;
+    --cell-filled: #fabd2f;
     --cell-empty: transparent;
-    --cell-current: #8BE9FD;
-    --cell-border: #6272A4;
-    --modal-bg: #151a1f;
+    --cell-current: #fe8019;
+    --cell-border: #504945;
+    --modal-bg: #282828;
 }
 
-/* Tungsten Monolith (Pure B&W) */
-[data-theme="tungsten"] {
-    --bg-color: #000000;
-    --text-color: #FFFFFF;
-    --text-muted: #808080;
-    --cell-filled: #FFFFFF;
+/* Nord */
+[data-theme="nord"] {
+    --bg-color: #2e3440;
+    --text-color: #eceff4;
+    --text-muted: #d8dee9;
+    --cell-filled: #88c0d0;
     --cell-empty: transparent;
-    --cell-current: #FFFFFF;
-    --cell-border: #333333;
-    --modal-bg: #111111;
+    --cell-current: #81a1c1;
+    --cell-border: #4c566a;
+    --modal-bg: #3b4252;
 }
 
-/* Neon Pulse (Cyberpunk Pink/Purple) */
-[data-theme="neon"] {
-    --bg-color: #0D0014;
-    --text-color: #F0E6FF;
-    --text-muted: #9D7AB8;
-    --cell-filled: #FF00FF;
+/* Dracula */
+[data-theme="dracula"] {
+    --bg-color: #282a36;
+    --text-color: #f8f8f2;
+    --text-muted: #6272a4;
+    --cell-filled: #bd93f9;
     --cell-empty: transparent;
-    --cell-current: #00FFFF;
-    --cell-border: #6B2D8B;
-    --modal-bg: #1A0026;
+    --cell-current: #ff79c6;
+    --cell-border: #44475a;
+    --modal-bg: #383a59;
 }
 
-/* Forest Depths (Deep Green/Emerald) */
-[data-theme="forest"] {
-    --bg-color: #0A140A;
-    --text-color: #D4E5D4;
-    --text-muted: #6B8B6B;
-    --cell-filled: #2ECC71;
+/* Tokyo Night */
+[data-theme="tokyonight"] {
+    --bg-color: #1a1b26;
+    --text-color: #c0caf5;
+    --text-muted: #565f89;
+    --cell-filled: #7aa2f7;
     --cell-empty: transparent;
-    --cell-current: #1ABC9C;
-    --cell-border: #1E3B1E;
-    --modal-bg: #0F1F0F;
+    --cell-current: #bb9af7;
+    --cell-border: #3b4261;
+    --modal-bg: #24283b;
 }
 
-/* Solar Flare (Warm Gold/Yellow) */
-[data-theme="solar"] {
-    --bg-color: #141008;
-    --text-color: #FFF4D6;
-    --text-muted: #B89E5C;
-    --cell-filled: #FFD700;
+/* Rose Pine */
+[data-theme="rosepine"] {
+    --bg-color: #191724;
+    --text-color: #e0def4;
+    --text-muted: #908caa;
+    --cell-filled: #c4a7e7;
     --cell-empty: transparent;
-    --cell-current: #FF8C00;
-    --cell-border: #4A3C1A;
-    --modal-bg: #1F1810;
+    --cell-current: #ebbcba;
+    --cell-border: #26233a;
+    --modal-bg: #1f1d2e;
+}
+
+/* Everforest */
+[data-theme="everforest"] {
+    --bg-color: #2d353b;
+    --text-color: #d3c6aa;
+    --text-muted: #859289;
+    --cell-filled: #a7c080;
+    --cell-empty: transparent;
+    --cell-current: #83c092;
+    --cell-border: #475258;
+    --modal-bg: #343f44;
 }
 
 /* ==================== Effect Variations ==================== */
@@ -1167,4 +1313,105 @@ body {
 .theme-label {
     font-size: 14px;
     color: var(--text-color);
+}
+
+/* ==================== Image Upload Styles ==================== */
+
+.image-source-tabs {
+    display: flex;
+    gap: 8px;
+}
+
+.source-tab {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 13px;
+    background: transparent;
+    border: 1px solid var(--cell-border);
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.source-tab:hover {
+    border-color: var(--text-color);
+    color: var(--text-color);
+}
+
+.source-tab.active {
+    background: var(--cell-current);
+    border-color: var(--cell-current);
+    color: #fff;
+}
+
+.image-upload-group input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px dashed var(--cell-border);
+    border-radius: 6px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.image-upload-group input[type="file"]:hover {
+    border-color: var(--text-color);
+}
+
+.image-upload-group input[type="file"]::file-selector-button {
+    padding: 6px 12px;
+    margin-right: 12px;
+    background: var(--cell-border);
+    border: none;
+    border-radius: 4px;
+    color: var(--text-color);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.image-upload-group input[type="file"]::file-selector-button:hover {
+    background: var(--text-muted);
+}
+
+.image-preview {
+    position: relative;
+    margin-top: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    max-height: 150px;
+}
+
+.image-preview img {
+    width: 100%;
+    max-height: 150px;
+    object-fit: contain;
+    display: block;
+}
+
+.clear-image-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.clear-image-btn:hover {
+    background: var(--danger-color);
 }

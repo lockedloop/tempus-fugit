@@ -46,6 +46,21 @@
             <!-- Image Fields -->
             <div id="image-fields" class="hidden">
                 <div class="form-group">
+                    <label>Image Source</label>
+                    <div class="image-source-tabs">
+                        <button type="button" class="source-tab active" data-source="upload">Upload File</button>
+                        <button type="button" class="source-tab" data-source="url">URL</button>
+                    </div>
+                </div>
+                <div class="form-group image-upload-group">
+                    <label for="image-file">Choose Image (JPG, PNG, SVG)</label>
+                    <input type="file" id="image-file" accept="image/jpeg,image/png,image/svg+xml,.jpg,.jpeg,.png,.svg">
+                    <div id="image-preview" class="image-preview hidden">
+                        <img src="" alt="Preview">
+                        <button type="button" id="clear-image" class="clear-image-btn">&times;</button>
+                    </div>
+                </div>
+                <div class="form-group image-url-group hidden">
                     <label for="image-url">Image URL</label>
                     <input type="url" id="image-url" placeholder="https://example.com/image.jpg">
                 </div>
@@ -152,31 +167,35 @@
                 <div class="theme-options">
                     <label class="theme-option">
                         <input type="radio" name="theme" value="default" checked>
-                        <span class="theme-label">Current (Default)</span>
+                        <span class="theme-label">Default</span>
                     </label>
                     <label class="theme-option">
-                        <input type="radio" name="theme" value="phosphor">
-                        <span class="theme-label">Phosphor &amp; Void</span>
+                        <input type="radio" name="theme" value="catppuccin">
+                        <span class="theme-label">Catppuccin Mocha</span>
                     </label>
                     <label class="theme-option">
-                        <input type="radio" name="theme" value="cryo">
-                        <span class="theme-label">Cryo-Stasis</span>
+                        <input type="radio" name="theme" value="gruvbox">
+                        <span class="theme-label">Gruvbox Dark</span>
                     </label>
                     <label class="theme-option">
-                        <input type="radio" name="theme" value="tungsten">
-                        <span class="theme-label">Tungsten Monolith</span>
+                        <input type="radio" name="theme" value="nord">
+                        <span class="theme-label">Nord</span>
                     </label>
                     <label class="theme-option">
-                        <input type="radio" name="theme" value="neon">
-                        <span class="theme-label">Neon Pulse</span>
+                        <input type="radio" name="theme" value="dracula">
+                        <span class="theme-label">Dracula</span>
                     </label>
                     <label class="theme-option">
-                        <input type="radio" name="theme" value="forest">
-                        <span class="theme-label">Forest Depths</span>
+                        <input type="radio" name="theme" value="tokyonight">
+                        <span class="theme-label">Tokyo Night</span>
                     </label>
                     <label class="theme-option">
-                        <input type="radio" name="theme" value="solar">
-                        <span class="theme-label">Solar Flare</span>
+                        <input type="radio" name="theme" value="rosepine">
+                        <span class="theme-label">Rose Pine</span>
+                    </label>
+                    <label class="theme-option">
+                        <input type="radio" name="theme" value="everforest">
+                        <span class="theme-label">Everforest</span>
                     </label>
                 </div>
             </div>
