@@ -44,11 +44,14 @@ body {
     bottom: 24px;
     display: flex;
     flex-direction: column-reverse;
+    align-items: center;
     gap: 12px;
     z-index: 100;
 }
 
 .action-btn {
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -56,36 +59,19 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     border: none;
-}
-
-.action-btn.primary {
-    width: 56px;
-    height: 56px;
     background: var(--cell-current);
     color: var(--bg-color);
     font-size: 28px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.action-btn.secondary {
-    width: 44px;
-    height: 44px;
-    background: var(--modal-bg);
-    color: var(--text-muted);
-    font-size: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
 .action-btn:hover {
     transform: scale(1.1);
-}
-
-.action-btn.primary:hover {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
-.action-btn.secondary:hover {
-    color: var(--text-color);
+.action-btn.secondary {
+    font-size: 24px;
 }
 
 /* Top Section - counters centered, hourglass overlaps padding */
@@ -926,6 +912,46 @@ body {
     display: none;
 }
 
+/* Fullscreen countdown scaling - 50% larger */
+.container.fullscreen[data-container-type="countdown"] .container-title-display {
+    font-size: 36px;
+}
+
+.container.fullscreen[data-container-type="countdown"] .weeks-count {
+    font-size: 27px;
+}
+
+.container.fullscreen[data-container-type="countdown"] .target-subtitle,
+.container.fullscreen[data-container-type="countdown"] .container-description-display {
+    font-size: 21px;
+}
+
+.container.fullscreen[data-container-type="countdown"] .year-label {
+    font-size: 18px;
+    min-width: 5em;
+}
+
+.container.fullscreen[data-container-type="countdown"] .week-cell {
+    min-width: 16px;
+    height: 15px;
+}
+
+.container.fullscreen[data-container-type="countdown"] .led-time {
+    font-size: 30px;
+}
+
+.container.fullscreen[data-container-type="countdown"] .progress-percent {
+    font-size: 21px;
+}
+
+.container.fullscreen[data-container-type="countdown"] .progress-bar {
+    height: 9px;
+}
+
+.container.fullscreen[data-container-type="countdown"] .stats {
+    font-size: 16.5px;
+}
+
 /* Hide header elements (moved to info popup) */
 .weeks-count,
 .target-subtitle,
@@ -1372,6 +1398,175 @@ body {
 
 .data-buttons .btn {
     flex: 1;
+}
+
+/* ==================== Archive Button Styles ==================== */
+
+.archive-btn {
+    position: absolute;
+    top: 12px;
+    right: 108px;
+    background: transparent;
+    border: 1px solid var(--cell-border);
+    color: var(--text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.archive-btn:hover {
+    color: var(--text-color);
+    border-color: var(--text-color);
+}
+
+/* Hide archive button for non-countdown containers */
+.container:not([data-container-type="countdown"]) .archive-btn {
+    display: none;
+}
+
+/* Hide archive button in fullscreen */
+.container.fullscreen .archive-btn {
+    display: none;
+}
+
+/* ==================== History Modal Styles ==================== */
+
+.history-modal {
+    max-width: 500px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.history-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) transparent;
+}
+
+.history-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 3px;
+}
+
+.history-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 48px 24px;
+    font-size: 14px;
+}
+
+.history-item {
+    background: var(--bg-color);
+    border: 1px solid var(--cell-border);
+    border-radius: 8px;
+    padding: 16px;
+    transition: border-color 0.2s;
+}
+
+.history-item:hover {
+    border-color: var(--text-muted);
+}
+
+.history-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.history-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+    flex: 1;
+}
+
+.history-item-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.history-item-description {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+
+.history-item-dates {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.history-item-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.history-progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--cell-border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.history-progress-fill {
+    height: 100%;
+    background: var(--cell-current);
+    transition: width 0.3s ease;
+}
+
+.history-progress-percent {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--cell-current);
+    min-width: 36px;
+    text-align: right;
+}
+
+.history-item-todos {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.history-item-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.history-item-actions .btn {
+    padding: 6px 12px;
+    font-size: 12px;
 }
 
 /* ==================== Image Upload Styles ==================== */

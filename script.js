@@ -5,6 +5,7 @@
     const Storage = {
         KEY_CONTAINERS: 'speedrun_containers',
         KEY_SETTINGS: 'speedrun_settings',
+        KEY_HISTORY: 'speedrun_history',
         // Legacy keys for migration
         LEGACY_KEYS: {
             target: 'speedrun_target_date',
@@ -209,6 +210,82 @@
                     // Ignore chrome storage errors
                 }
             }
+        },
+
+        async getHistory() {
+            // Try chrome.storage.sync first, fall back to localStorage
+            if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+                try {
+                    return new Promise((resolve) => {
+                        chrome.storage.sync.get([this.KEY_HISTORY], (result) => {
+                            if (chrome.runtime.lastError) {
+                                resolve(this.getHistoryFromLocalStorage());
+                            } else {
+                                const history = result[this.KEY_HISTORY];
+                                if (history && Array.isArray(history)) {
+                                    resolve(history);
+                                } else {
+                                    resolve([]);
+                                }
+                            }
+                        });
+                    });
+                } catch (e) {
+                    return this.getHistoryFromLocalStorage();
+                }
+            }
+            return this.getHistoryFromLocalStorage();
+        },
+
+        getHistoryFromLocalStorage() {
+            const stored = localStorage.getItem(this.KEY_HISTORY);
+            if (stored) {
+                try {
+                    const history = JSON.parse(stored);
+                    if (Array.isArray(history)) {
+                        return history;
+                    }
+                } catch (e) {
+                    return [];
+                }
+            }
+            return [];
+        },
+
+        async setHistory(history) {
+            const data = JSON.stringify(history);
+            localStorage.setItem(this.KEY_HISTORY, data);
+
+            if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+                try {
+                    return new Promise((resolve) => {
+                        chrome.storage.sync.set({ [this.KEY_HISTORY]: history }, () => {
+                            resolve();
+                        });
+                    });
+                } catch (e) {
+                    // Ignore chrome storage errors
+                }
+            }
+        },
+
+        async addToHistory(containerData) {
+            const history = await this.getHistory();
+            history.unshift(containerData); // Add to beginning (most recent first)
+            await this.setHistory(history);
+            return history;
+        },
+
+        async removeFromHistory(id) {
+            const history = await this.getHistory();
+            const filtered = history.filter(item => item.id !== id);
+            await this.setHistory(filtered);
+            return filtered;
+        },
+
+        async clearHistory() {
+            await this.setHistory([]);
+            return [];
         },
 
         async migrateFromLegacy() {
@@ -470,6 +547,7 @@
                     <button class="height-btn height-up" title="Increase height">&#x25BC;</button>
                 </div>
                 <button class="info-btn" title="Info">&#x2139;</button>
+                <button class="archive-btn" title="Archive">&#x1F4E5;</button>
                 <button class="expand-btn" title="Expand">&#x26F6;</button>
                 <button class="edit-btn" title="Edit">&#128295;</button>
                 <button class="close-btn" title="Close">&#x2715;</button>
@@ -500,6 +578,7 @@
                 expandBtn: this.container.querySelector('.expand-btn'),
                 closeBtn: this.container.querySelector('.close-btn'),
                 infoBtn: this.container.querySelector('.info-btn'),
+                archiveBtn: this.container.querySelector('.archive-btn'),
                 infoPopup: this.container.querySelector('.info-popup'),
                 infoTitle: this.container.querySelector('.info-title'),
                 infoDescription: this.container.querySelector('.info-description'),
@@ -526,8 +605,18 @@
                 this.elements.infoPopup.classList.toggle('visible');
             });
 
+            // Bind archive button
+            if (this.elements.archiveBtn) {
+                this.elements.archiveBtn.addEventListener('click', () => this.archive());
+            }
+
             // Cache type-specific elements
             this.cacheTypeElements();
+        }
+
+        async archive() {
+            // Base implementation - can be overridden by subclasses
+            // For non-countdown containers, archive is not supported
         }
 
         cacheTypeElements() {
@@ -665,7 +754,7 @@
                 </section>
                 <div class="led-countdown">
                     <div class="led-time">
-                        <span class="led-days">0000</span>D : <span class="led-hours">00</span>H : <span class="led-minutes">00</span>M : <span class="led-seconds">00</span>S
+                        <span class="led-weeks">0000</span>W : <span class="led-days">0</span>D : <span class="led-hours">00</span>H : <span class="led-minutes">00</span>M : <span class="led-seconds">00</span>S
                     </div>
                     <div class="progress-bar"><div class="progress-fill"></div></div>
                     <span class="progress-percent">0%</span>
@@ -678,6 +767,7 @@
             this.elements.weeksCount = this.container.querySelector('.weeks-count');
             this.elements.targetSubtitle = this.container.querySelector('.target-subtitle');
             this.elements.weeksSection = this.container.querySelector('.weeks-section');
+            this.elements.ledWeeks = this.container.querySelector('.led-weeks');
             this.elements.ledDays = this.container.querySelector('.led-days');
             this.elements.ledHours = this.container.querySelector('.led-hours');
             this.elements.ledMinutes = this.container.querySelector('.led-minutes');
@@ -849,8 +939,8 @@
 
         updateLedCountdown(remaining) {
             const pad = (n, len = 2) => String(n).padStart(len, '0');
-            const totalDays = remaining.weeks * 7 + remaining.days;
-            this.elements.ledDays.textContent = pad(totalDays, 4);
+            this.elements.ledWeeks.textContent = pad(remaining.weeks, 4);
+            this.elements.ledDays.textContent = remaining.days;
             this.elements.ledHours.textContent = pad(remaining.hours);
             this.elements.ledMinutes.textContent = pad(remaining.minutes);
             this.elements.ledSeconds.textContent = pad(remaining.seconds);
@@ -963,6 +1053,41 @@
             this.updateTodoSectionVisibility();
             this.renderTodos();
             this.update(new Date());
+        }
+
+        async archive() {
+            // Calculate current progress %
+            const total = this.targetDate - this.startDate;
+            const elapsed = Date.now() - this.startDate;
+            const progress = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
+
+            // Calculate todo summary
+            const completedTodos = this.todos.filter(t => t.completed).length;
+            const totalTodos = this.todos.length;
+
+            await Storage.addToHistory({
+                id: this.id,
+                type: this.data.type,
+                title: this.data.title,
+                description: this.data.description,
+                archivedAt: new Date().toISOString(),
+                progressAtArchive: progress,
+                todosSummary: { completed: completedTodos, total: totalTodos },
+                data: {
+                    startDate: this.data.data.startDate,
+                    targetDate: this.data.data.targetDate,
+                    todos: this.todos,
+                    showTodos: this.showTodos
+                }
+            });
+
+            await ContainerManager.deleteContainer(this.id);
+
+            // Refresh history if modal is open
+            if (typeof History !== 'undefined' && History.isOpen) {
+                await History.load();
+                History.render();
+            }
         }
     }
 
@@ -1729,11 +1854,13 @@
         async exportData() {
             const { containers } = await Storage.get();
             const settings = await Storage.getSettings();
+            const history = await Storage.getHistory();
             const data = {
-                version: 1,
+                version: 2,
                 exportedAt: new Date().toISOString(),
                 containers,
-                settings
+                settings,
+                history
             };
 
             // Create and download file
@@ -1742,7 +1869,10 @@
             const a = document.createElement('a');
             a.href = url;
             a.download = `speedrun-backup-${Date.now()}.json`;
+            a.style.display = 'none';
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
         },
 
@@ -1760,6 +1890,9 @@
                 await Storage.set(data.containers);
                 if (data.settings) {
                     await Storage.setSettings(data.settings);
+                }
+                if (data.history && Array.isArray(data.history)) {
+                    await Storage.setHistory(data.history);
                 }
 
                 // Reload page to apply
@@ -1957,6 +2090,157 @@
         }
     };
 
+    // ==================== History Module ====================
+    const History = {
+        elements: {},
+        items: [],
+        isOpen: false,
+
+        init() {
+            this.elements = {
+                overlay: document.getElementById('history-modal'),
+                list: document.getElementById('history-list'),
+                clearBtn: document.getElementById('clear-history'),
+                closeBtn: document.getElementById('close-history'),
+                historyBtn: document.getElementById('history-btn')
+            };
+
+            this.bindEvents();
+        },
+
+        bindEvents() {
+            if (this.elements.historyBtn) {
+                this.elements.historyBtn.addEventListener('click', () => this.open());
+            }
+            if (this.elements.closeBtn) {
+                this.elements.closeBtn.addEventListener('click', () => this.close());
+            }
+            if (this.elements.clearBtn) {
+                this.elements.clearBtn.addEventListener('click', () => this.clear());
+            }
+            if (this.elements.overlay) {
+                this.elements.overlay.addEventListener('click', (e) => {
+                    if (e.target === this.elements.overlay) {
+                        this.close();
+                    }
+                });
+            }
+        },
+
+        async load() {
+            this.items = await Storage.getHistory();
+        },
+
+        async open() {
+            await this.load();
+            this.render();
+            this.elements.overlay.classList.remove('hidden');
+            this.isOpen = true;
+        },
+
+        close() {
+            this.elements.overlay.classList.add('hidden');
+            this.isOpen = false;
+        },
+
+        render() {
+            if (!this.elements.list) return;
+
+            if (this.items.length === 0) {
+                this.elements.list.innerHTML = '<div class="history-empty">No archived countdowns</div>';
+                this.elements.clearBtn.classList.add('hidden');
+                return;
+            }
+
+            this.elements.clearBtn.classList.remove('hidden');
+            this.elements.list.innerHTML = this.items.map(item => this.renderItem(item)).join('');
+
+            // Bind event listeners for action buttons
+            this.elements.list.querySelectorAll('.history-restore-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.target.closest('.history-item').dataset.id;
+                    this.restore(id);
+                });
+            });
+
+            this.elements.list.querySelectorAll('.history-delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.target.closest('.history-item').dataset.id;
+                    this.remove(id);
+                });
+            });
+        },
+
+        renderItem(item) {
+            const archivedDate = new Date(item.archivedAt);
+            const archivedDateStr = archivedDate.toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+
+            const todoSummary = item.todosSummary
+                ? `${item.todosSummary.completed}/${item.todosSummary.total} tasks completed`
+                : '';
+
+            return `
+                <div class="history-item" data-id="${item.id}">
+                    <div class="history-item-header">
+                        <h3 class="history-item-title">${item.title || 'Untitled Countdown'}</h3>
+                        <span class="history-item-date">Archived ${archivedDateStr}</span>
+                    </div>
+                    ${item.description ? `<p class="history-item-description">${item.description}</p>` : ''}
+                    <div class="history-item-dates">
+                        ${item.data.startDate} → ${item.data.targetDate}
+                    </div>
+                    <div class="history-item-progress">
+                        <div class="history-progress-bar">
+                            <div class="history-progress-fill" style="width: ${item.progressAtArchive}%"></div>
+                        </div>
+                        <span class="history-progress-percent">${item.progressAtArchive}%</span>
+                    </div>
+                    ${todoSummary ? `<div class="history-item-todos">${todoSummary}</div>` : ''}
+                    <div class="history-item-actions">
+                        <button class="btn btn-secondary history-restore-btn">Unarchive</button>
+                        <button class="btn btn-danger history-delete-btn">Delete</button>
+                    </div>
+                </div>
+            `;
+        },
+
+        async restore(id) {
+            const item = this.items.find(i => i.id === id);
+            if (!item) return;
+
+            // Create new container from archived data
+            const containerData = {
+                type: item.type || 'countdown',
+                title: item.title,
+                description: item.description,
+                data: item.data
+            };
+
+            await ContainerManager.addNewContainer(containerData);
+            await this.remove(id, false); // Don't re-render, we'll close
+            this.close();
+        },
+
+        async remove(id, rerender = true) {
+            await Storage.removeFromHistory(id);
+            this.items = this.items.filter(i => i.id !== id);
+            if (rerender) {
+                this.render();
+            }
+        },
+
+        async clear() {
+            if (!confirm('Are you sure you want to clear all history? This cannot be undone.')) {
+                return;
+            }
+            await Storage.clearHistory();
+            this.items = [];
+            this.render();
+        }
+    };
+
     // ==================== App Module ====================
     const App = {
         async init() {
@@ -1968,6 +2252,7 @@
             // Initialize modules
             GlobalTimeDisplay.init();
             Modal.init();
+            History.init();
 
             // Initialize ContainerManager with column count from settings
             const columnCount = Settings.current.columns || Settings.defaults.columns;
