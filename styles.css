@@ -9,6 +9,7 @@
     --cell-current: #f4a261;
     --cell-border: #ffffff;
     --modal-bg: #1a1a1a;
+    --danger-color: #e63946;
 }
 
 * {
@@ -36,8 +37,8 @@ body {
     display: none !important;
 }
 
-/* Settings Button */
-.settings-btn {
+/* Add Timer Button (replaces settings button) */
+.add-timer-btn {
     position: fixed;
     top: 16px;
     right: 16px;
@@ -48,12 +49,17 @@ body {
     height: 36px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 24px;
+    font-weight: 300;
+    line-height: 1;
     transition: all 0.2s;
     z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.settings-btn:hover {
+.add-timer-btn:hover {
     color: var(--text-color);
     border-color: var(--text-color);
 }
@@ -160,36 +166,51 @@ body {
     border-width: 0.5px;
 }
 
-/* Countdown Container - Centered, Tight */
-#countdown-container {
+/* Timers Grid - 2 column layout, aligned with counter bars */
+.timers-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+    width: 100%;
+    padding-left: 190px;  /* label width (140px) + gap (16px) */
+    padding-right: 190px; /* matches counter padding */
+}
+
+@media (max-width: 899px) {
+    .timers-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Countdown Container - Class-based for dynamic creation */
+.countdown-container {
     position: relative;
-    display: inline-flex;
+    display: flex;
     flex-direction: column;
     align-items: center;
     background: var(--modal-bg);
     border-radius: 12px;
     padding: 24px 32px;
-    max-width: 100%;
 }
 
-#countdown-container header {
+.countdown-container header {
     text-align: center;
     margin-bottom: 16px;
 }
 
-#countdown-container h1 {
-    font-size: 28px;
+.countdown-container h2 {
+    font-size: 24px;
     font-weight: 600;
     margin-bottom: 4px;
 }
 
-#countdown-container .subtitle {
+.countdown-container .subtitle {
     font-size: 13px;
     color: var(--text-muted);
 }
 
 /* Weeks Section */
-#weeks-section {
+.weeks-section {
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -223,7 +244,7 @@ body {
 }
 
 .week-cell {
-    width: 10px;
+    width: 11px;
     height: 8px;
     border: 1px solid var(--cell-border);
     border-radius: 1px;
@@ -242,7 +263,7 @@ body {
 }
 
 /* Footer */
-#countdown-container footer {
+.countdown-container .timer-footer {
     margin-top: 16px;
     text-align: center;
     font-size: 11px;
@@ -311,7 +332,13 @@ body {
 .modal-actions {
     display: flex;
     gap: 12px;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-actions-right {
+    display: flex;
+    gap: 12px;
 }
 
 .btn {
@@ -343,7 +370,18 @@ body {
     opacity: 0.9;
 }
 
-/* Edit Button - Top Right Corner */
+.btn-danger {
+    background: var(--danger-color);
+    border: none;
+    color: #fff;
+    font-weight: 500;
+}
+
+.btn-danger:hover {
+    opacity: 0.9;
+}
+
+/* Edit Button - Top Right Corner of each timer */
 .edit-btn {
     position: absolute;
     top: 12px;
@@ -368,19 +406,19 @@ body {
 }
 
 /* Timer Title and Description in Header */
-#timer-title-display {
+.timer-title-display {
     font-size: 24px;
     font-weight: 600;
     margin: 0;
 }
 
-#timer-description-display {
+.timer-description-display {
     font-size: 14px;
     color: var(--text-muted);
     margin-bottom: 8px;
 }
 
-#timer-description-display:empty {
+.timer-description-display:empty {
     display: none;
 }
 
@@ -395,7 +433,7 @@ body {
 }
 
 /* LED Countdown Display */
-#led-countdown {
+.led-countdown {
     display: flex;
     flex-direction: column;
     align-items: center;

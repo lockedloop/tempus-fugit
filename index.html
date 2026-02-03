@@ -29,19 +29,22 @@
                 <input type="date" id="target-date" required>
             </div>
             <div class="modal-actions">
-                <button type="button" id="cancel-config" class="btn btn-secondary hidden">Cancel</button>
-                <button type="button" id="save-config" class="btn btn-primary">Save</button>
+                <button type="button" id="delete-timer" class="btn btn-danger hidden">Delete</button>
+                <div class="modal-actions-right">
+                    <button type="button" id="cancel-config" class="btn btn-secondary hidden">Cancel</button>
+                    <button type="button" id="save-config" class="btn btn-primary">Save</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Settings Button -->
-    <button id="settings-btn" class="settings-btn" title="Settings">&#9881;</button>
+    <!-- Add Timer Button -->
+    <button id="add-timer-btn" class="add-timer-btn" title="Add Timer">+</button>
 
     <!-- Logo -->
     <div id="logo">
         <!-- Hourglass -->
-        <svg id="hourglass" viewBox="0 0 64 64" width="80" height="80">
+        <svg id="hourglass" viewBox="0 0 64 64" width="75" height="75">
             <!-- Hourglass frame -->
             <path class="hourglass-frame" d="M12 4 h40 v4 c0 12 -12 16 -16 24 c4 8 16 12 16 24 v4 h-40 v-4 c0 -12 12 -16 16 -24 c-4 -8 -16 -12 -16 -24 v-4 z"
                   fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
@@ -74,32 +77,9 @@
         </div>
     </section>
 
-    <!-- Countdown Container - Centered, Tight -->
-    <div id="countdown-container">
-        <button id="edit-btn" class="edit-btn" title="Edit Timer">&#128295;</button>
-        <header>
-            <h1 id="timer-title-display">-- Weeks</h1>
-            <div id="timer-description-display" class="subtitle"></div>
-            <div id="weeks-count" class="weeks-count"></div>
-            <div id="target-subtitle" class="subtitle">Configure your target date</div>
-        </header>
-
-        <section id="weeks-section">
-            <!-- Year rows will be dynamically generated -->
-        </section>
-
-        <div id="led-countdown">
-            <div class="led-time">
-                <span id="led-weeks">00</span>:<span id="led-days">00</span>:<span id="led-hours">00</span>:<span id="led-minutes">00</span>:<span id="led-seconds">00</span>
-            </div>
-            <div class="led-labels">
-                <span>WW</span><span>DD</span><span>HH</span><span>MM</span><span>SS</span>
-            </div>
-        </div>
-
-        <footer id="footer">
-            <span id="stats"></span>
-        </footer>
+    <!-- Timers Grid Container -->
+    <div id="timers-grid" class="timers-grid">
+        <!-- Timer containers will be dynamically generated -->
     </div>
 
     <script src="script.js"></script>
