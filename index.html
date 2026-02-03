@@ -100,10 +100,10 @@
         </div>
     </div>
 
-    <!-- Action Buttons (right-center of screen) -->
+    <!-- Action Buttons (bottom-right FAB) -->
     <div class="action-buttons">
-        <button id="add-timer-btn" class="action-btn" title="Add Container">+</button>
-        <button id="settings-btn" class="action-btn" title="Settings">&#x2699;</button>
+        <button id="add-timer-btn" class="action-btn primary" title="Add Container">+</button>
+        <button id="settings-btn" class="action-btn secondary" title="Settings">&#x2699;</button>
     </div>
 
     <!-- Settings Modal -->
@@ -206,6 +206,15 @@
                         <input type="radio" name="effect" value="sand">
                         <span class="theme-label">Sand</span>
                     </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Data</h3>
+                <div class="data-buttons">
+                    <button id="export-data" class="btn btn-secondary">Export</button>
+                    <button id="import-data" class="btn btn-secondary">Import</button>
+                    <input type="file" id="import-file" accept=".json" hidden>
                 </div>
             </div>
 

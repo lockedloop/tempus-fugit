@@ -37,38 +37,55 @@ body {
     display: none !important;
 }
 
-/* Action Buttons Container - right center of screen */
+/* Action Buttons Container - fixed bottom-right FAB */
 .action-buttons {
     position: fixed;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 24px;
+    bottom: 24px;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: column-reverse;
+    gap: 12px;
     z-index: 100;
 }
 
 .action-btn {
-    background: transparent;
-    border: 1px solid var(--cell-border);
-    color: var(--text-muted);
-    width: 36px;
-    height: 36px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 24px;
-    font-weight: 300;
-    line-height: 1;
-    transition: all 0.2s;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.action-btn.primary {
+    width: 56px;
+    height: 56px;
+    background: var(--cell-current);
+    color: var(--bg-color);
+    font-size: 28px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.action-btn.secondary {
+    width: 44px;
+    height: 44px;
+    background: var(--modal-bg);
+    color: var(--text-muted);
+    font-size: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .action-btn:hover {
+    transform: scale(1.1);
+}
+
+.action-btn.primary:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.action-btn.secondary:hover {
     color: var(--text-color);
-    border-color: var(--text-color);
 }
 
 /* Top Section - counters centered, hourglass overlaps padding */
@@ -160,25 +177,9 @@ body {
     border-color: var(--cell-current);
 }
 
-/* Grid-specific heights */
-.days-grid .time-cell {
-    height: 24px;
-    border-width: 2px;
-}
-
-.hours-grid .time-cell {
-    height: 18px;
-    border-width: 1.5px;
-}
-
-.minutes-grid .time-cell {
-    height: 12px;
-    border-width: 1px;
-}
-
-.seconds-grid .time-cell {
-    height: 8px;
-    border-width: 0.5px;
+/* Uniform counter grid heights */
+.counter-grid .time-cell {
+    height: 16px;
 }
 
 /* Containers Grid - Column-based layout for vertical stickiness */
@@ -1362,6 +1363,15 @@ body {
 .theme-label {
     font-size: 14px;
     color: var(--text-color);
+}
+
+.data-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.data-buttons .btn {
+    flex: 1;
 }
 
 /* ==================== Image Upload Styles ==================== */

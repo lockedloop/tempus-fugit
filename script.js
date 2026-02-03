@@ -1590,7 +1590,10 @@
                 fontCountdown: document.getElementById('font-size-countdown'),
                 columnCount: document.getElementById('column-count'),
                 themeRadios: document.querySelectorAll('input[name="theme"]'),
-                effectRadios: document.querySelectorAll('input[name="effect"]')
+                effectRadios: document.querySelectorAll('input[name="effect"]'),
+                exportBtn: document.getElementById('export-data'),
+                importBtn: document.getElementById('import-data'),
+                importFile: document.getElementById('import-file')
             };
         },
 
@@ -1625,6 +1628,22 @@
             if (this.elements.effectRadios) {
                 this.elements.effectRadios.forEach(radio => {
                     radio.addEventListener('change', () => this.saveAndApply());
+                });
+            }
+
+            // Export/Import buttons
+            if (this.elements.exportBtn) {
+                this.elements.exportBtn.addEventListener('click', () => this.exportData());
+            }
+            if (this.elements.importBtn) {
+                this.elements.importBtn.addEventListener('click', () => this.elements.importFile.click());
+            }
+            if (this.elements.importFile) {
+                this.elements.importFile.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        this.importData(e.target.files[0]);
+                        e.target.value = ''; // Reset for next import
+                    }
                 });
             }
         },
@@ -1704,6 +1723,50 @@
             // Apply column count to ContainerManager
             if (typeof ContainerManager !== 'undefined' && ContainerManager.gridEl && ContainerManager.setColumnCount) {
                 ContainerManager.setColumnCount(this.current.columns);
+            }
+        },
+
+        async exportData() {
+            const { containers } = await Storage.get();
+            const settings = await Storage.getSettings();
+            const data = {
+                version: 1,
+                exportedAt: new Date().toISOString(),
+                containers,
+                settings
+            };
+
+            // Create and download file
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `speedrun-backup-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        },
+
+        async importData(file) {
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+
+                // Validate
+                if (!data.containers || !Array.isArray(data.containers)) {
+                    throw new Error('Invalid backup file');
+                }
+
+                // Restore
+                await Storage.set(data.containers);
+                if (data.settings) {
+                    await Storage.setSettings(data.settings);
+                }
+
+                // Reload page to apply
+                location.reload();
+            } catch (e) {
+                console.error('Failed to import data:', e);
+                alert('Failed to import data. Please ensure the file is a valid Speedrun backup.');
             }
         }
     };
