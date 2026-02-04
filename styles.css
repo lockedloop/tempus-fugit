@@ -900,8 +900,16 @@ body {
     align-items: center;
     justify-content: center;
     flex: 1;
+    min-height: 0;
     padding: 32px;
-    overflow: visible;
+    overflow: hidden;
+    max-width: 1400px;
+}
+
+.weeks-grid-landscape-wrapper {
+    /* aspect-ratio set by JS (cols/rows) to keep cells square */
+    max-width: 100%;
+    max-height: 100%;
 }
 
 .weeks-grid-landscape {
@@ -911,14 +919,13 @@ body {
     grid-template-columns: repeat(80, 1fr);
     gap: 2px;
     width: 100%;
-    max-width: 1400px;
+    height: 100%;
 }
 
 .weeks-grid-landscape .week-cell {
     aspect-ratio: 1;
-    min-width: 6px;
-    min-height: 6px;
-    height: auto;
+    min-width: 4px;
+    min-height: 4px;
     border-width: 1px;
 }
 

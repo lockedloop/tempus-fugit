@@ -893,23 +893,32 @@
             this.elements.weeksSection.innerHTML = '';
             this.elements.weeksSection.classList.add('fullscreen-grid');
 
+            const cols = 80;
+            const rows = Math.ceil(this.totalWeeks / cols);
+
+            // Wrapper constrains size via aspect-ratio so cells stay square
+            const wrapper = document.createElement('div');
+            wrapper.className = 'weeks-grid-landscape-wrapper';
+            wrapper.style.aspectRatio = `${cols} / ${rows}`;
+
             const grid = document.createElement('div');
             grid.className = 'weeks-grid-landscape';
 
             for (let i = 0; i < this.totalWeeks; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'week-cell';
+                const el = document.createElement('div');
+                el.className = 'week-cell';
 
                 if (i < elapsedWeeks) {
-                    cell.classList.add('filled');
+                    el.classList.add('filled');
                 } else if (i === elapsedWeeks) {
-                    cell.classList.add('current');
+                    el.classList.add('current');
                 }
 
-                grid.appendChild(cell);
+                grid.appendChild(el);
             }
 
-            this.elements.weeksSection.appendChild(grid);
+            wrapper.appendChild(grid);
+            this.elements.weeksSection.appendChild(wrapper);
         }
 
         generateWeeksGrid(elapsedWeeks) {
