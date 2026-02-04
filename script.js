@@ -1,4 +1,4 @@
-(function() {
+(function () {
     'use strict';
 
     // ==================== Storage Module ====================
@@ -26,7 +26,10 @@
                     return new Promise((resolve) => {
                         chrome.storage.sync.get([this.KEY_CONTAINERS], (result) => {
                             if (chrome.runtime.lastError) {
-                                console.warn('Chrome storage failed, using localStorage:', chrome.runtime.lastError);
+                                console.warn(
+                                    'Chrome storage failed, using localStorage:',
+                                    chrome.runtime.lastError
+                                );
                                 resolve(this.getFromLocalStorage());
                             } else {
                                 const containers = result[this.KEY_CONTAINERS];
@@ -82,7 +85,7 @@
         },
 
         migrateTimersToContainers(timers) {
-            return timers.map(timer => ({
+            return timers.map((timer) => ({
                 id: timer.id.replace('timer_', 'container_'),
                 type: 'countdown',
                 title: timer.title || '',
@@ -112,7 +115,10 @@
                     return new Promise((resolve) => {
                         chrome.storage.sync.set({ [this.KEY_CONTAINERS]: containers }, () => {
                             if (chrome.runtime.lastError) {
-                                console.warn('Chrome storage set failed:', chrome.runtime.lastError);
+                                console.warn(
+                                    'Chrome storage set failed:',
+                                    chrome.runtime.lastError
+                                );
                             }
                             resolve();
                         });
@@ -142,7 +148,7 @@
 
         async updateContainer(id, data) {
             const { containers } = await this.get();
-            const index = containers.findIndex(c => c.id === id);
+            const index = containers.findIndex((c) => c.id === id);
             if (index !== -1) {
                 containers[index] = { ...containers[index], ...data };
                 await this.set(containers);
@@ -153,7 +159,7 @@
 
         async deleteContainer(id) {
             const { containers } = await this.get();
-            const filtered = containers.filter(c => c.id !== id);
+            const filtered = containers.filter((c) => c.id !== id);
             await this.set(filtered);
             return filtered;
         },
@@ -176,7 +182,7 @@
                             }
                         });
                     });
-                } catch (e) {
+                } catch (_e) {
                     return this.getSettingsFromLocalStorage();
                 }
             }
@@ -188,7 +194,7 @@
             if (stored) {
                 try {
                     return JSON.parse(stored);
-                } catch (e) {
+                } catch (_e) {
                     return null;
                 }
             }
@@ -206,7 +212,7 @@
                             resolve();
                         });
                     });
-                } catch (e) {
+                } catch (_e) {
                     // Ignore chrome storage errors
                 }
             }
@@ -230,7 +236,7 @@
                             }
                         });
                     });
-                } catch (e) {
+                } catch (_e) {
                     return this.getHistoryFromLocalStorage();
                 }
             }
@@ -245,7 +251,7 @@
                     if (Array.isArray(history)) {
                         return history;
                     }
-                } catch (e) {
+                } catch (_e) {
                     return [];
                 }
             }
@@ -263,7 +269,7 @@
                             resolve();
                         });
                     });
-                } catch (e) {
+                } catch (_e) {
                     // Ignore chrome storage errors
                 }
             }
@@ -278,7 +284,7 @@
 
         async removeFromHistory(id) {
             const history = await this.getHistory();
-            const filtered = history.filter(item => item.id !== id);
+            const filtered = history.filter((item) => item.id !== id);
             await this.setHistory(filtered);
             return filtered;
         },
@@ -290,32 +296,39 @@
 
         async migrateFromLegacy() {
             // Check if legacy data exists
-            const hasLegacy = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync;
+            const hasLegacy =
+                typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync;
 
             let legacyData = null;
 
             if (hasLegacy) {
                 try {
                     legacyData = await new Promise((resolve) => {
-                        chrome.storage.sync.get([
-                            this.LEGACY_KEYS.target,
-                            this.LEGACY_KEYS.start,
-                            this.LEGACY_KEYS.title,
-                            this.LEGACY_KEYS.description
-                        ], (result) => {
-                            if (chrome.runtime.lastError) {
-                                resolve(null);
-                            } else if (result[this.LEGACY_KEYS.target] && result[this.LEGACY_KEYS.start]) {
-                                resolve({
-                                    targetDate: result[this.LEGACY_KEYS.target],
-                                    startDate: result[this.LEGACY_KEYS.start],
-                                    title: result[this.LEGACY_KEYS.title] || '',
-                                    description: result[this.LEGACY_KEYS.description] || ''
-                                });
-                            } else {
-                                resolve(null);
+                        chrome.storage.sync.get(
+                            [
+                                this.LEGACY_KEYS.target,
+                                this.LEGACY_KEYS.start,
+                                this.LEGACY_KEYS.title,
+                                this.LEGACY_KEYS.description
+                            ],
+                            (result) => {
+                                if (chrome.runtime.lastError) {
+                                    resolve(null);
+                                } else if (
+                                    result[this.LEGACY_KEYS.target] &&
+                                    result[this.LEGACY_KEYS.start]
+                                ) {
+                                    resolve({
+                                        targetDate: result[this.LEGACY_KEYS.target],
+                                        startDate: result[this.LEGACY_KEYS.start],
+                                        title: result[this.LEGACY_KEYS.title] || '',
+                                        description: result[this.LEGACY_KEYS.description] || ''
+                                    });
+                                } else {
+                                    resolve(null);
+                                }
                             }
-                        });
+                        );
                     });
                 } catch (e) {
                     console.warn('Legacy migration from chrome.storage failed:', e);
@@ -349,7 +362,7 @@
                 });
 
                 // Clean up legacy data
-                Object.values(this.LEGACY_KEYS).forEach(key => {
+                Object.values(this.LEGACY_KEYS).forEach((key) => {
                     localStorage.removeItem(key);
                 });
 
@@ -524,7 +537,9 @@
 
     // ==================== Base Container Class ====================
     class Container {
-        static get type() { return 'base'; }
+        static get type() {
+            return 'base';
+        }
 
         constructor(id, data, containerElement) {
             this.id = id;
@@ -659,7 +674,7 @@
             }
         }
 
-        update(now) {
+        update(_now) {
             // Subclasses override this if they need time updates
         }
 
@@ -679,7 +694,7 @@
 
         handleEsc = (e) => {
             if (e.key === 'Escape') this.exitFullscreen();
-        }
+        };
 
         getData() {
             return { ...this.data };
@@ -698,7 +713,9 @@
 
     // ==================== CountdownContainer Class ====================
     class CountdownContainer extends Container {
-        static get type() { return 'countdown'; }
+        static get type() {
+            return 'countdown';
+        }
 
         constructor(id, data, containerElement) {
             super(id, data, containerElement);
@@ -811,8 +828,7 @@
                 this.elements.weeksCount.textContent = '';
             }
 
-            this.elements.targetSubtitle.textContent =
-                `${TimeCalc.formatDate(this.startDate)} → ${TimeCalc.formatDate(this.targetDate)}`;
+            this.elements.targetSubtitle.textContent = `${TimeCalc.formatDate(this.startDate)} → ${TimeCalc.formatDate(this.targetDate)}`;
 
             // Update info popup with countdown-specific info
             this.elements.infoTitle.textContent = `${this.totalWeeks.toLocaleString()} Weeks`;
@@ -1019,7 +1035,7 @@
         }
 
         toggleTodo(id) {
-            const todo = this.todos.find(t => t.id === id);
+            const todo = this.todos.find((t) => t.id === id);
             if (todo) {
                 todo.completed = !todo.completed;
                 this.saveTodos();
@@ -1028,7 +1044,7 @@
         }
 
         removeTodo(id) {
-            const index = this.todos.findIndex(t => t.id === id);
+            const index = this.todos.findIndex((t) => t.id === id);
             if (index !== -1) {
                 this.todos.splice(index, 1);
                 this.saveTodos();
@@ -1062,7 +1078,7 @@
             const progress = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
 
             // Calculate todo summary
-            const completedTodos = this.todos.filter(t => t.completed).length;
+            const completedTodos = this.todos.filter((t) => t.completed).length;
             const totalTodos = this.todos.length;
 
             await Storage.addToHistory({
@@ -1093,7 +1109,9 @@
 
     // ==================== ImageContainer Class ====================
     class ImageContainer extends Container {
-        static get type() { return 'image'; }
+        static get type() {
+            return 'image';
+        }
 
         getDefaultTitle() {
             return 'Image';
@@ -1132,7 +1150,8 @@
                     this.elements.image = this.elements.imageBody.querySelector('img');
                 }
             } else {
-                this.elements.imageBody.innerHTML = '<div class="image-placeholder">No image set</div>';
+                this.elements.imageBody.innerHTML =
+                    '<div class="image-placeholder">No image set</div>';
                 this.elements.image = null;
             }
         }
@@ -1140,7 +1159,9 @@
 
     // ==================== TextContainer Class ====================
     class TextContainer extends Container {
-        static get type() { return 'text'; }
+        static get type() {
+            return 'text';
+        }
 
         getDefaultTitle() {
             return 'Text';
@@ -1178,7 +1199,8 @@
 
             this.elements.textBody.dataset.fontSize = fontSize;
             this.elements.textBody.dataset.alignment = alignment;
-            this.elements.textContent.innerHTML = this.escapeHtml(content) || '<span class="text-placeholder">No content</span>';
+            this.elements.textContent.innerHTML =
+                this.escapeHtml(content) || '<span class="text-placeholder">No content</span>';
         }
     }
 
@@ -1281,7 +1303,7 @@
             }
         },
 
-        createContainer(data, isNew = true) {
+        createContainer(data, _isNew = true) {
             const containerEl = document.createElement('div');
             containerEl.className = 'container';
             containerEl.dataset.containerId = data.id;
@@ -1303,7 +1325,7 @@
         async addNewContainer(data) {
             // If no column specified, add to the column with fewest containers
             if (data.column === undefined) {
-                const columnCounts = this.columnEls.map(col => col.children.length);
+                const columnCounts = this.columnEls.map((col) => col.children.length);
                 data.column = columnCounts.indexOf(Math.min(...columnCounts));
             }
             const containerData = await Storage.addContainer(data);
@@ -1426,20 +1448,24 @@
 
         showFieldsForType(type) {
             // Hide all type-specific fields
-            if (this.elements.countdownFields) this.elements.countdownFields.classList.add('hidden');
+            if (this.elements.countdownFields)
+                this.elements.countdownFields.classList.add('hidden');
             if (this.elements.imageFields) this.elements.imageFields.classList.add('hidden');
             if (this.elements.textFields) this.elements.textFields.classList.add('hidden');
 
             // Show fields for selected type
             switch (type) {
                 case 'countdown':
-                    if (this.elements.countdownFields) this.elements.countdownFields.classList.remove('hidden');
+                    if (this.elements.countdownFields)
+                        this.elements.countdownFields.classList.remove('hidden');
                     break;
                 case 'image':
-                    if (this.elements.imageFields) this.elements.imageFields.classList.remove('hidden');
+                    if (this.elements.imageFields)
+                        this.elements.imageFields.classList.remove('hidden');
                     break;
                 case 'text':
-                    if (this.elements.textFields) this.elements.textFields.classList.remove('hidden');
+                    if (this.elements.textFields)
+                        this.elements.textFields.classList.remove('hidden');
                     break;
             }
         },
@@ -1451,7 +1477,8 @@
 
             // Update modal UI
             this.elements.title.textContent = 'Create Container';
-            this.elements.description.textContent = 'Choose a container type and configure its settings.';
+            this.elements.description.textContent =
+                'Choose a container type and configure its settings.';
             this.elements.saveBtn.textContent = 'Create';
             this.elements.deleteBtn.classList.add('hidden');
 
@@ -1487,10 +1514,14 @@
             // Text defaults
             if (this.elements.textContentInput) this.elements.textContentInput.value = '';
             if (this.elements.textFontSizeSelect) this.elements.textFontSizeSelect.value = 'medium';
-            if (this.elements.textAlignmentSelect) this.elements.textAlignmentSelect.value = 'center';
+            if (this.elements.textAlignmentSelect)
+                this.elements.textAlignmentSelect.value = 'center';
 
             // Show cancel only if there are existing containers
-            this.elements.cancelBtn.classList.toggle('hidden', ContainerManager.getContainerCount() === 0);
+            this.elements.cancelBtn.classList.toggle(
+                'hidden',
+                ContainerManager.getContainerCount() === 0
+            );
 
             this.showFieldsForType('countdown');
             this.show();
@@ -1745,13 +1776,13 @@
             this.elements.columnCount.addEventListener('change', () => this.saveAndApply());
 
             // Theme changes - apply immediately
-            this.elements.themeRadios.forEach(radio => {
+            this.elements.themeRadios.forEach((radio) => {
                 radio.addEventListener('change', () => this.saveAndApply());
             });
 
             // Effect changes - apply immediately
             if (this.elements.effectRadios) {
-                this.elements.effectRadios.forEach(radio => {
+                this.elements.effectRadios.forEach((radio) => {
                     radio.addEventListener('change', () => this.saveAndApply());
                 });
             }
@@ -1761,7 +1792,9 @@
                 this.elements.exportBtn.addEventListener('click', () => this.exportData());
             }
             if (this.elements.importBtn) {
-                this.elements.importBtn.addEventListener('click', () => this.elements.importFile.click());
+                this.elements.importBtn.addEventListener('click', () =>
+                    this.elements.importFile.click()
+                );
             }
             if (this.elements.importFile) {
                 this.elements.importFile.addEventListener('change', (e) => {
@@ -1814,13 +1847,13 @@
             this.elements.columnCount.value = this.current.columns || this.defaults.columns;
 
             // Update theme radio
-            this.elements.themeRadios.forEach(radio => {
+            this.elements.themeRadios.forEach((radio) => {
                 radio.checked = radio.value === this.current.theme;
             });
 
             // Update effect radio
             if (this.elements.effectRadios) {
-                this.elements.effectRadios.forEach(radio => {
+                this.elements.effectRadios.forEach((radio) => {
                     radio.checked = radio.value === this.current.effect;
                 });
             }
@@ -1846,7 +1879,11 @@
             await Storage.setSettings(this.current);
 
             // Apply column count to ContainerManager
-            if (typeof ContainerManager !== 'undefined' && ContainerManager.gridEl && ContainerManager.setColumnCount) {
+            if (
+                typeof ContainerManager !== 'undefined' &&
+                ContainerManager.gridEl &&
+                ContainerManager.setColumnCount
+            ) {
                 ContainerManager.setColumnCount(this.current.columns);
             }
         },
@@ -1941,11 +1978,21 @@
             containerElement.setAttribute('draggable', 'true');
 
             // Bind drag events
-            containerElement.addEventListener('dragstart', (e) => this.handleDragStart(e, containerElement));
-            containerElement.addEventListener('dragend', (e) => this.handleDragEnd(e, containerElement));
-            containerElement.addEventListener('dragover', (e) => this.handleDragOver(e, containerElement));
-            containerElement.addEventListener('dragenter', (e) => this.handleDragEnter(e, containerElement));
-            containerElement.addEventListener('dragleave', (e) => this.handleDragLeave(e, containerElement));
+            containerElement.addEventListener('dragstart', (e) =>
+                this.handleDragStart(e, containerElement)
+            );
+            containerElement.addEventListener('dragend', (e) =>
+                this.handleDragEnd(e, containerElement)
+            );
+            containerElement.addEventListener('dragover', (e) =>
+                this.handleDragOver(e, containerElement)
+            );
+            containerElement.addEventListener('dragenter', (e) =>
+                this.handleDragEnter(e, containerElement)
+            );
+            containerElement.addEventListener('dragleave', (e) =>
+                this.handleDragLeave(e, containerElement)
+            );
             containerElement.addEventListener('drop', (e) => this.handleDrop(e, containerElement));
         },
 
@@ -2036,7 +2083,7 @@
             this.clearDropIndicators();
         },
 
-        handleColumnDragOver(e, columnEl) {
+        handleColumnDragOver(e, _columnEl) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
         },
@@ -2083,7 +2130,7 @@
             for (const col of this.manager.columnEls) {
                 col.classList.remove('drop-target', 'drag-over');
                 const containers = col.querySelectorAll('.container');
-                containers.forEach(c => {
+                containers.forEach((c) => {
                     c.classList.remove('drag-over', 'drop-before', 'drop-after');
                 });
             }
@@ -2147,23 +2194,24 @@
             if (!this.elements.list) return;
 
             if (this.items.length === 0) {
-                this.elements.list.innerHTML = '<div class="history-empty">No archived countdowns</div>';
+                this.elements.list.innerHTML =
+                    '<div class="history-empty">No archived countdowns</div>';
                 this.elements.clearBtn.classList.add('hidden');
                 return;
             }
 
             this.elements.clearBtn.classList.remove('hidden');
-            this.elements.list.innerHTML = this.items.map(item => this.renderItem(item)).join('');
+            this.elements.list.innerHTML = this.items.map((item) => this.renderItem(item)).join('');
 
             // Bind event listeners for action buttons
-            this.elements.list.querySelectorAll('.history-restore-btn').forEach(btn => {
+            this.elements.list.querySelectorAll('.history-restore-btn').forEach((btn) => {
                 btn.addEventListener('click', (e) => {
                     const id = e.target.closest('.history-item').dataset.id;
                     this.restore(id);
                 });
             });
 
-            this.elements.list.querySelectorAll('.history-delete-btn').forEach(btn => {
+            this.elements.list.querySelectorAll('.history-delete-btn').forEach((btn) => {
                 btn.addEventListener('click', (e) => {
                     const id = e.target.closest('.history-item').dataset.id;
                     this.remove(id);
@@ -2174,7 +2222,9 @@
         renderItem(item) {
             const archivedDate = new Date(item.archivedAt);
             const archivedDateStr = archivedDate.toLocaleDateString('en-US', {
-                year: 'numeric', month: 'short', day: 'numeric'
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
             });
 
             const todoSummary = item.todosSummary
@@ -2207,7 +2257,7 @@
         },
 
         async restore(id) {
-            const item = this.items.find(i => i.id === id);
+            const item = this.items.find((i) => i.id === id);
             if (!item) return;
 
             // Create new container from archived data
@@ -2225,7 +2275,7 @@
 
         async remove(id, rerender = true) {
             await Storage.removeFromHistory(id);
-            this.items = this.items.filter(i => i.id !== id);
+            this.items = this.items.filter((i) => i.id !== id);
             if (rerender) {
                 this.render();
             }

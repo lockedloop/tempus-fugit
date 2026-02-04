@@ -1,0 +1,40 @@
+{
+    "name": "tempus-fugit",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Time flies — try to capture it.",
+    "license": "GPL-3.0-only",
+    "scripts": {
+        "lint": "eslint . && stylelint '**/*.css'",
+        "lint:js": "eslint .",
+        "lint:css": "stylelint '**/*.css'",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "validate:manifest": "node -e \"const m=JSON.parse(require('fs').readFileSync('manifest.json','utf8')); if(!m.manifest_version||!m.name||!m.version) {console.error('Invalid manifest');process.exit(1)} console.log('manifest.json OK:', m.name, 'v'+m.version)\"",
+        "check": "npm run lint && npm run format:check && npm run validate:manifest",
+        "prepare": "husky"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.0.0",
+        "eslint": "^9.0.0",
+        "globals": "^15.0.0",
+        "husky": "^9.0.0",
+        "lint-staged": "^15.0.0",
+        "prettier": "^3.0.0",
+        "stylelint": "^16.0.0",
+        "stylelint-config-standard": "^36.0.0"
+    },
+    "lint-staged": {
+        "*.js": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "*.css": [
+            "stylelint --fix",
+            "prettier --write"
+        ],
+        "*.{html,json,md}": [
+            "prettier --write"
+        ]
+    }
+}
