@@ -1,18 +1,18 @@
 {
-  "manifest_version": 3,
-  "name": "Speedrun",
-  "version": "1.0",
-  "description": "Speedrun of your remaining weeks.",
-  "permissions": ["storage"],
-  "chrome_url_overrides": {
-    "newtab": "index.html"
-  },
-  "action": {
-    "default_title": "Memento Mori"
-  },
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  }
+    "manifest_version": 3,
+    "name": "Tempus Fugit",
+    "version": "0.1.0",
+    "description": "Time flies — try to capture it.",
+    "permissions": ["storage"],
+    "chrome_url_overrides": {
+        "newtab": "index.html"
+    },
+    "action": {
+        "default_title": "Memento Mori"
+    },
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    }
 }

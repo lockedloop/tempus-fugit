@@ -1,0 +1,9 @@
+icons/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+node_modules/
+.git/

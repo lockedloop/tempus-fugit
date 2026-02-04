@@ -1,265 +1,380 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speedrun</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <!-- Configuration Modal -->
-    <div id="config-modal" class="modal-overlay hidden">
-        <div class="modal">
-            <h2>Create Container</h2>
-            <p>Choose a container type and configure its settings.</p>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Speedrun</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <!-- Configuration Modal -->
+        <div id="config-modal" class="modal-overlay hidden">
+            <div class="modal">
+                <h2>Create Container</h2>
+                <p>Choose a container type and configure its settings.</p>
 
-            <div class="form-group">
-                <label for="container-type">Container Type</label>
-                <select id="container-type" class="settings-select">
-                    <option value="countdown">Countdown</option>
-                    <option value="image">Image</option>
-                    <option value="text">Text</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="container-title">Title</label>
-                <input type="text" id="container-title" placeholder="My Container">
-            </div>
-            <div class="form-group">
-                <label for="container-description">Description</label>
-                <input type="text" id="container-description" placeholder="Optional description...">
-            </div>
-
-            <!-- Countdown Fields -->
-            <div id="countdown-fields">
                 <div class="form-group">
-                    <label for="start-date">Start Date</label>
-                    <input type="date" id="start-date" required>
-                </div>
-                <div class="form-group">
-                    <label for="target-date">Target Date</label>
-                    <input type="date" id="target-date" required>
-                </div>
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="show-todos" checked>
-                        <span>Show Task List</span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Image Fields -->
-            <div id="image-fields" class="hidden">
-                <div class="form-group">
-                    <label for="image-url">Image URL</label>
-                    <input type="url" id="image-url" placeholder="https://example.com/image.jpg">
-                </div>
-                <div class="form-group">
-                    <label for="image-fit">Image Fit</label>
-                    <select id="image-fit" class="settings-select">
-                        <option value="cover">Cover (fill, crop)</option>
-                        <option value="contain">Contain (fit, letterbox)</option>
-                        <option value="fill">Fill (stretch)</option>
+                    <label for="container-type">Container Type</label>
+                    <select id="container-type" class="settings-select">
+                        <option value="countdown">Countdown</option>
+                        <option value="image">Image</option>
+                        <option value="text">Text</option>
                     </select>
                 </div>
-            </div>
 
-            <!-- Text Fields -->
-            <div id="text-fields" class="hidden">
                 <div class="form-group">
-                    <label for="text-content">Content</label>
-                    <textarea id="text-content" rows="4" placeholder="Enter your text, quote, or note..."></textarea>
+                    <label for="container-title">Title</label>
+                    <input type="text" id="container-title" placeholder="My Container" />
                 </div>
                 <div class="form-group">
-                    <label for="text-font-size">Font Size</label>
-                    <select id="text-font-size" class="settings-select">
-                        <option value="small">Small</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="large">Large</option>
-                        <option value="xlarge">Extra Large</option>
-                    </select>
+                    <label for="container-description">Description</label>
+                    <input
+                        type="text"
+                        id="container-description"
+                        placeholder="Optional description..."
+                    />
                 </div>
-                <div class="form-group">
-                    <label for="text-alignment">Alignment</label>
-                    <select id="text-alignment" class="settings-select">
-                        <option value="left">Left</option>
-                        <option value="center" selected>Center</option>
-                        <option value="right">Right</option>
-                    </select>
-                </div>
-            </div>
 
-            <div class="modal-actions">
-                <button type="button" id="delete-container" class="btn btn-danger hidden">Delete</button>
-                <div class="modal-actions-right">
-                    <button type="button" id="cancel-config" class="btn btn-secondary hidden">Cancel</button>
-                    <button type="button" id="save-config" class="btn btn-primary">Save</button>
+                <!-- Countdown Fields -->
+                <div id="countdown-fields">
+                    <div class="form-group">
+                        <label for="start-date">Start Date</label>
+                        <input type="date" id="start-date" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="target-date">Target Date</label>
+                        <input type="date" id="target-date" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="show-todos" checked />
+                            <span>Show Task List</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Image Fields -->
+                <div id="image-fields" class="hidden">
+                    <div class="form-group">
+                        <label for="image-url">Image URL</label>
+                        <input
+                            type="url"
+                            id="image-url"
+                            placeholder="https://example.com/image.jpg"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="image-fit">Image Fit</label>
+                        <select id="image-fit" class="settings-select">
+                            <option value="cover">Cover (fill, crop)</option>
+                            <option value="contain">Contain (fit, letterbox)</option>
+                            <option value="fill">Fill (stretch)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Text Fields -->
+                <div id="text-fields" class="hidden">
+                    <div class="form-group">
+                        <label for="text-content">Content</label>
+                        <textarea
+                            id="text-content"
+                            rows="4"
+                            placeholder="Enter your text, quote, or note..."
+                        ></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="text-font-size">Font Size</label>
+                        <select id="text-font-size" class="settings-select">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="large">Large</option>
+                            <option value="xlarge">Extra Large</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="text-alignment">Alignment</label>
+                        <select id="text-alignment" class="settings-select">
+                            <option value="left">Left</option>
+                            <option value="center" selected>Center</option>
+                            <option value="right">Right</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="delete-container" class="btn btn-danger hidden">
+                        Delete
+                    </button>
+                    <div class="modal-actions-right">
+                        <button type="button" id="cancel-config" class="btn btn-secondary hidden">
+                            Cancel
+                        </button>
+                        <button type="button" id="save-config" class="btn btn-primary">Save</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Action Buttons (right-center of screen) -->
-    <div class="action-buttons">
-        <button id="add-timer-btn" class="action-btn" title="Add Container">+</button>
-        <button id="settings-btn" class="action-btn" title="Settings">&#x2699;</button>
-    </div>
+        <!-- Action Buttons (bottom dock) -->
+        <div class="action-buttons">
+            <button id="add-timer-btn" class="action-btn" title="Add Container">
+                <svg
+                    viewBox="0 0 24 24"
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+            </button>
+            <button id="history-btn" class="action-btn" title="History">
+                <svg
+                    viewBox="0 0 24 24"
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+            </button>
+            <button id="settings-btn" class="action-btn" title="Settings">
+                <svg
+                    viewBox="0 0 24 24"
+                    width="20"
+                    height="20"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+                    />
+                </svg>
+            </button>
+        </div>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal-overlay hidden">
-        <div class="modal settings-modal">
-            <h2>Settings</h2>
-            <p>Customize your display preferences.</p>
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal-overlay hidden">
+            <div class="modal settings-modal">
+                <h2>Settings</h2>
+                <p>Customize your display preferences.</p>
 
-            <div class="settings-section">
-                <h3>Font Sizes</h3>
-                <div class="form-group">
-                    <label for="font-size-titles">Titles</label>
-                    <select id="font-size-titles" class="settings-select">
-                        <option value="small">Small (20px)</option>
-                        <option value="medium" selected>Medium (24px)</option>
-                        <option value="large">Large (28px)</option>
-                    </select>
+                <div class="settings-section">
+                    <h3>Font Sizes</h3>
+                    <div class="form-group">
+                        <label for="font-size-titles">Titles</label>
+                        <select id="font-size-titles" class="settings-select">
+                            <option value="small">Small (20px)</option>
+                            <option value="medium" selected>Medium (24px)</option>
+                            <option value="large">Large (28px)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="font-size-metadata">Years / Metadata</label>
+                        <select id="font-size-metadata" class="settings-select">
+                            <option value="small">Small (10px)</option>
+                            <option value="medium" selected>Medium (12px)</option>
+                            <option value="large">Large (14px)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="font-size-countdown">Countdowns</label>
+                        <select id="font-size-countdown" class="settings-select">
+                            <option value="small">Small (16px)</option>
+                            <option value="medium" selected>Medium (20px)</option>
+                            <option value="large">Large (24px)</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="font-size-metadata">Years / Metadata</label>
-                    <select id="font-size-metadata" class="settings-select">
-                        <option value="small">Small (10px)</option>
-                        <option value="medium" selected>Medium (12px)</option>
-                        <option value="large">Large (14px)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="font-size-countdown">Countdowns</label>
-                    <select id="font-size-countdown" class="settings-select">
-                        <option value="small">Small (16px)</option>
-                        <option value="medium" selected>Medium (20px)</option>
-                        <option value="large">Large (24px)</option>
-                    </select>
-                </div>
-            </div>
 
-            <div class="settings-section">
-                <h3>Layout</h3>
-                <div class="form-group">
-                    <label for="column-count">Number of Columns</label>
-                    <select id="column-count" class="settings-select">
-                        <option value="1">1 Column</option>
-                        <option value="2" selected>2 Columns</option>
-                        <option value="3">3 Columns</option>
-                        <option value="4">4 Columns</option>
-                    </select>
+                <div class="settings-section">
+                    <h3>Layout</h3>
+                    <div class="form-group">
+                        <label for="column-count">Number of Columns</label>
+                        <select id="column-count" class="settings-select">
+                            <option value="1">1 Column</option>
+                            <option value="2" selected>2 Columns</option>
+                            <option value="3">3 Columns</option>
+                            <option value="4">4 Columns</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
 
-            <div class="settings-section">
-                <h3>Theme</h3>
-                <div class="theme-options">
-                    <label class="theme-option">
-                        <input type="radio" name="theme" value="default" checked>
-                        <span class="theme-label">Default</span>
-                    </label>
-                    <label class="theme-option">
-                        <input type="radio" name="theme" value="catppuccin">
-                        <span class="theme-label">Catppuccin Mocha</span>
-                    </label>
-                    <label class="theme-option">
-                        <input type="radio" name="theme" value="gruvbox">
-                        <span class="theme-label">Gruvbox Dark</span>
-                    </label>
-                    <label class="theme-option">
-                        <input type="radio" name="theme" value="nord">
-                        <span class="theme-label">Nord</span>
-                    </label>
-                    <label class="theme-option">
-                        <input type="radio" name="theme" value="dracula">
-                        <span class="theme-label">Dracula</span>
-                    </label>
-                    <label class="theme-option">
-                        <input type="radio" name="theme" value="tokyonight">
-                        <span class="theme-label">Tokyo Night</span>
-                    </label>
-                    <label class="theme-option">
-                        <input type="radio" name="theme" value="rosepine">
-                        <span class="theme-label">Rose Pine</span>
-                    </label>
-                    <label class="theme-option">
-                        <input type="radio" name="theme" value="everforest">
-                        <span class="theme-label">Everforest</span>
-                    </label>
+                <div class="settings-section">
+                    <h3>Theme</h3>
+                    <div class="theme-options">
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="default" checked />
+                            <span class="theme-label">Default</span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="catppuccin" />
+                            <span class="theme-label">Catppuccin Mocha</span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="gruvbox" />
+                            <span class="theme-label">Gruvbox Dark</span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="nord" />
+                            <span class="theme-label">Nord</span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="dracula" />
+                            <span class="theme-label">Dracula</span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="tokyonight" />
+                            <span class="theme-label">Tokyo Night</span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="rosepine" />
+                            <span class="theme-label">Rose Pine</span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="everforest" />
+                            <span class="theme-label">Everforest</span>
+                        </label>
+                    </div>
                 </div>
-            </div>
 
-            <div class="settings-section">
-                <h3>Effect</h3>
-                <div class="theme-options">
-                    <label class="theme-option">
-                        <input type="radio" name="effect" value="none" checked>
-                        <span class="theme-label">None</span>
-                    </label>
-                    <label class="theme-option">
-                        <input type="radio" name="effect" value="glass">
-                        <span class="theme-label">Glass</span>
-                    </label>
-                    <label class="theme-option">
-                        <input type="radio" name="effect" value="sand">
-                        <span class="theme-label">Sand</span>
-                    </label>
+                <div class="settings-section">
+                    <h3>Effect</h3>
+                    <div class="theme-options">
+                        <label class="theme-option">
+                            <input type="radio" name="effect" value="none" checked />
+                            <span class="theme-label">None</span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="effect" value="glass" />
+                            <span class="theme-label">Glass</span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="effect" value="sand" />
+                            <span class="theme-label">Sand</span>
+                        </label>
+                    </div>
                 </div>
-            </div>
 
-            <div class="modal-actions">
-                <div class="modal-actions-right">
-                    <button type="button" id="close-settings" class="btn btn-secondary">Close</button>
+                <div class="settings-section">
+                    <h3>Data</h3>
+                    <div class="data-buttons">
+                        <button id="export-data" class="btn btn-secondary">Export</button>
+                        <button id="import-data" class="btn btn-secondary">Import</button>
+                        <input type="file" id="import-file" accept=".json" hidden />
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <div class="modal-actions-right">
+                        <button type="button" id="close-settings" class="btn btn-secondary">
+                            Close
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Top Section with Counters and Hourglass -->
-    <section id="top-section">
-        <!-- Time Counters -->
-        <div id="time-counters">
-            <div class="counter">
-                <span class="counter-label" id="week-label">Week 1</span>
-                <div id="days-grid" class="counter-grid days-grid"></div>
-            </div>
-            <div class="counter">
-                <span class="counter-label" id="date-label">Jan 1</span>
-                <div id="hours-grid" class="counter-grid hours-grid"></div>
-            </div>
-            <div class="counter">
-                <span class="counter-label" id="time-label">00:00</span>
-                <div id="minutes-grid" class="counter-grid minutes-grid"></div>
-            </div>
-            <div class="counter">
-                <span class="counter-label" id="seconds-label">:00</span>
-                <div id="seconds-grid" class="counter-grid seconds-grid"></div>
+        <!-- History Modal -->
+        <div id="history-modal" class="modal-overlay hidden">
+            <div class="modal history-modal">
+                <h2>History</h2>
+                <p>Archived countdowns</p>
+                <div id="history-list" class="history-list">
+                    <!-- Dynamically populated -->
+                </div>
+                <div class="modal-actions">
+                    <button id="clear-history" class="btn btn-danger">Clear All</button>
+                    <div class="modal-actions-right">
+                        <button id="close-history" class="btn btn-secondary">Close</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Hourglass -->
-        <div id="logo">
-            <svg id="hourglass" viewBox="0 0 64 64" width="56" height="56">
-                <!-- Hourglass frame -->
-                <path class="hourglass-frame" d="M12 4 h40 v4 c0 12 -12 16 -16 24 c4 8 16 12 16 24 v4 h-40 v-4 c0 -12 12 -16 16 -24 c-4 -8 -16 -12 -16 -24 v-4 z"
-                      fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                <!-- Top sand -->
-                <path class="hourglass-sand-top" d="M18 12 c0 8 8 12 14 18 c6 -6 14 -10 14 -18 z" fill="currentColor"/>
-                <!-- Bottom sand -->
-                <path class="hourglass-sand-bottom" d="M18 52 c0 -8 8 -12 14 -18 c6 6 14 10 14 18 z" fill="currentColor"/>
-                <!-- Falling sand stream -->
-                <line class="hourglass-stream" x1="32" y1="30" x2="32" y2="34" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+        <!-- Top Section with Counters and Hourglass -->
+        <section id="top-section">
+            <!-- Time Counters -->
+            <div id="time-counters">
+                <div class="counter">
+                    <span class="counter-label" id="week-label">Week 1</span>
+                    <div id="days-grid" class="counter-grid days-grid"></div>
+                </div>
+                <div class="counter">
+                    <span class="counter-label" id="date-label">Jan 1</span>
+                    <div id="hours-grid" class="counter-grid hours-grid"></div>
+                </div>
+                <div class="counter">
+                    <span class="counter-label" id="time-label">00:00</span>
+                    <div id="minutes-grid" class="counter-grid minutes-grid"></div>
+                </div>
+                <div class="counter">
+                    <span class="counter-label" id="seconds-label">:00</span>
+                    <div id="seconds-grid" class="counter-grid seconds-grid"></div>
+                </div>
+            </div>
+
+            <!-- Hourglass -->
+            <div id="logo">
+                <svg id="hourglass" viewBox="0 0 64 64" width="56" height="56">
+                    <!-- Hourglass frame -->
+                    <path
+                        class="hourglass-frame"
+                        d="M12 4 h40 v4 c0 12 -12 16 -16 24 c4 8 16 12 16 24 v4 h-40 v-4 c0 -12 12 -16 16 -24 c-4 -8 -16 -12 -16 -24 v-4 z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                    <!-- Top sand -->
+                    <path
+                        class="hourglass-sand-top"
+                        d="M18 12 c0 8 8 12 14 18 c6 -6 14 -10 14 -18 z"
+                        fill="currentColor"
+                    />
+                    <!-- Bottom sand -->
+                    <path
+                        class="hourglass-sand-bottom"
+                        d="M18 52 c0 -8 8 -12 14 -18 c6 6 14 10 14 18 z"
+                        fill="currentColor"
+                    />
+                    <!-- Falling sand stream -->
+                    <line
+                        class="hourglass-stream"
+                        x1="32"
+                        y1="30"
+                        x2="32"
+                        y2="34"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                    />
+                </svg>
+            </div>
+        </section>
+
+        <!-- Containers Grid -->
+        <div id="timers-grid" class="timers-grid">
+            <!-- Container elements will be dynamically generated -->
         </div>
-    </section>
 
-    <!-- Containers Grid -->
-    <div id="timers-grid" class="timers-grid">
-        <!-- Container elements will be dynamically generated -->
-    </div>
-
-    <script src="script.js"></script>
-</body>
+        <script src="script.js"></script>
+    </body>
 </html>
