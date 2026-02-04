@@ -858,19 +858,25 @@ body {
     border-color: var(--text-color);
 }
 
+/* Fullscreen overlay - lives on body, immune to ancestor CSS */
+.fullscreen-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: var(--modal-bg);
+    overflow-y: auto;
+}
+
 /* Fullscreen Mode */
 .container.fullscreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1000;
-    border-radius: 0;
-    overflow-y: auto;
-    max-height: none;
-    padding: 48px;
+    position: static;
+    width: 100%;
+    min-height: 100%;
     height: auto !important;
+    max-height: none;
+    border-radius: 0;
+    padding: 48px;
+    background: var(--modal-bg);
 }
 
 /* Preserve original content width in fullscreen */

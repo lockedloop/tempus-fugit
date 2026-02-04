@@ -683,12 +683,30 @@
         }
 
         enterFullscreen() {
+            this._originalParent = this.container.parentElement;
+            this._originalNextSibling = this.container.nextSibling;
+
+            // Create a dedicated overlay on body so no ancestor CSS can interfere
+            this._overlay = document.createElement('div');
+            this._overlay.className = 'fullscreen-overlay';
+            this._overlay.appendChild(this.container);
+            document.body.appendChild(this._overlay);
+
             this.container.classList.add('fullscreen');
             document.addEventListener('keydown', this.handleEsc);
         }
 
         exitFullscreen() {
             this.container.classList.remove('fullscreen');
+
+            // Move container back and remove overlay
+            if (this._originalParent) {
+                this._originalParent.insertBefore(this.container, this._originalNextSibling);
+            }
+            if (this._overlay) {
+                this._overlay.remove();
+                this._overlay = null;
+            }
             document.removeEventListener('keydown', this.handleEsc);
         }
 
