@@ -11,7 +11,7 @@
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "validate:manifest": "node -e \"const m=JSON.parse(require('fs').readFileSync('manifest.json','utf8')); if(!m.manifest_version||!m.name||!m.version) {console.error('Invalid manifest');process.exit(1)} console.log('manifest.json OK:', m.name, 'v'+m.version)\"",
-        "check": "npm run lint && npm run format:check && npm run validate:manifest",
+        "check": "pnpm run lint && pnpm run format:check && pnpm run validate:manifest",
         "prepare": "husky"
     },
     "devDependencies": {
