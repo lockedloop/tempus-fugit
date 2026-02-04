@@ -2,7 +2,7 @@
     "name": "tempus-fugit",
     "version": "0.1.0",
     "private": true,
-    "description": "Time flies — try to capture it.",
+    "description": "Time flies, capture it.",
     "license": "GPL-3.0-only",
     "scripts": {
         "lint": "eslint . && stylelint '**/*.css'",
